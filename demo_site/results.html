@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+  Demo site, page 2 of 5: results.
+
+  The route and date come back out of the query string, so the page shows what
+  was actually typed on page 1. Three trains; the first one is what "Do it for
+  me" picks (MASTERSPEC 3B).
+
+  No sensitive fields on this page, deliberately: the DOM guard must stay quiet
+  here, and tests/test_actions.py asserts that it does. A guard that fires on
+  every page is as useless as one that never fires.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Rail - Trains</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="name">Demo Rail</span>
+  <span class="tag">practice booking site</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Trains</h1>
+    <p class="lead" id="route">Choose a train.</p>
+    <p class="steps">Search &middot; <b>Step 2 of 4</b> &middot; Choose a train &middot; Sign in &middot; Pay</p>
+
+    <table>
+      <thead>
+        <tr><th>Train</th><th>Leaves</th><th>Arrives</th><th>Fare</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr class="train">
+          <td>Morning Express</td><td>06:40</td><td>10:15</td><td>&#8377; 540</td>
+          <td><a class="button" id="choose-1" href="login.html">Choose</a></td>
+        </tr>
+        <tr class="train">
+          <td>Midday Passenger</td><td>12:05</td><td>16:40</td><td>&#8377; 390</td>
+          <td><a class="button" id="choose-2" href="login.html">Choose</a></td>
+        </tr>
+        <tr class="train">
+          <td>Night Mail</td><td>22:30</td><td>05:55</td><td>&#8377; 610</td>
+          <td><a class="button" id="choose-3" href="login.html">Choose</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<footer>
+  <strong>Demo site.</strong> Not a real railway. Nothing is booked, nothing is
+  charged, and no details are sent anywhere.
+</footer>
+
+<script>
+  // Echo back what page 1 sent, so the screen recording shows that the route
+  // and date Tiny Me typed actually arrived.
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var from = q.get("from"), to = q.get("to"), date = q.get("date");
+    if (from && to) {
+      var text = from + " to " + to;
+      if (date) { text += " on " + date; }
+      document.getElementById("route").textContent = text;
+    }
+    // Carry the trip details forward so the later pages can show them too.
+    ["choose-1", "choose-2", "choose-3"].forEach(function (id) {
+      var link = document.getElementById(id);
+      if (link) { link.href = "login.html" + location.search; }
+    });
+  })();
+</script>
+</body>
+</html>

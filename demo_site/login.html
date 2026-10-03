@@ -1,0 +1,70 @@
+<!doctype html>
+<!--
+  Demo site, page 3 of 5: sign in.
+
+  This is the page the whole project is about. Two fields: a username Tiny Me
+  may fill, and a password it must not touch (CLAUDE.md rule 5). The password
+  field is a plain `input[type=password]` with `autocomplete="current-password"`
+  and a label that says Password, so all three of the DOM guard's signals are
+  present -- a real site usually gives you at least one of them.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Rail - Sign in</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="name">Demo Rail</span>
+  <span class="tag">practice booking site</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Sign in</h1>
+    <p class="lead">Sign in to hold your seat.</p>
+    <p class="steps">Search &middot; Choose a train &middot; <b>Step 3 of 4</b> &middot; Sign in &middot; Pay</p>
+
+    <form action="otp.html" method="get">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username"
+             placeholder="Your username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password"
+             autocomplete="current-password" placeholder="Your password">
+
+      <button type="submit" id="signin">Sign in</button>
+    </form>
+
+    <p class="note">
+      This is a practice page. Type anything you like as the password - it is
+      not checked and not stored.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <strong>Demo site.</strong> Not a real railway. Nothing is booked, nothing is
+  charged, and no details are sent anywhere.
+</footer>
+
+<script>
+  // Keep the trip details in the URL as she moves on.
+  (function () {
+    var form = document.querySelector("form");
+    var q = new URLSearchParams(location.search);
+    ["from", "to", "date"].forEach(function (key) {
+      if (!q.get(key)) { return; }
+      var hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = key;
+      hidden.value = q.get(key);
+      form.appendChild(hidden);
+    });
+  })();
+</script>
+</body>
+</html>

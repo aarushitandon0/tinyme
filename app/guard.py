@@ -228,6 +228,215 @@ def can_do_it(task_type: Any) -> bool:
     return allowed
 
 
+# --- the browser guard (MASTERSPEC 3B, CLAUDE.md rule 5) -------------------
+#
+# In a browser we can do better than reading the screen. The DOM says what a
+# field *is*, so the decision stops being a guess about pixels and becomes a
+# fact about the page: `input[type=password]` is a password box whatever its
+# label says, and `autocomplete="one-time-code"` is an OTP box even on a page
+# with no other clue on it.
+#
+# This is why Scene B is held to a stricter standard than Scene A. On the
+# desktop the guard pauses on a *screen*; here it refuses a *field*, by name,
+# before anything is typed into it.
+
+
+#: ``autocomplete`` values that name a payment field. The spec in HTML puts
+#: every card field behind the ``cc-`` prefix, so the prefix is the rule.
+CC_AUTOCOMPLETE_PREFIX = "cc-"
+
+#: ``autocomplete`` values that name a one-time code.
+OTP_AUTOCOMPLETE = frozenset({"one-time-code"})
+
+#: Words in a field's label, name, id or placeholder that mean "hers".
+#: Matched as whole words on normalised text, so "Discard" is not "card".
+#:
+#: One known false positive, kept on purpose: in India "PIN code" is a postal
+#: code, so an address form with that label is handed over to her. The cost is
+#: that she types her own postcode on a page where she was going to be typing
+#: anyway; the alternative is dropping "pin" and typing into a UPI PIN box.
+#: That is not a trade, so it goes in README "Limitations" instead.
+DOM_LABEL_KEYWORDS: tuple[str, ...] = (
+    "password",
+    "passcode",
+    "pin",
+    "otp",
+    "cvv",
+    "cvc",
+    "card",
+    "upi",
+    "one time code",
+    "one time password",
+    "security code",
+    "verification code",
+    "expiry",
+    "expiration",
+)
+
+
+#: Splits ``cardNumber`` into ``card`` + ``Number`` before lower-casing.
+_CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
+
+#: Shortest keyword allowed to match an identifier by prefix. Two letters
+#: would match far too much.
+MIN_IDENTIFIER_PREFIX = 3
+
+
+def _identifier_words(text: str) -> list[str]:
+    """``"cardNumber otp_input"`` -> ``["card", "number", "otp", "input"]``."""
+    spaced = _CAMEL.sub(" ", text or "")
+    return [word for word in _WORDS.split(spaced.casefold()) if word]
+
+
+def _identifier_hits(words: Sequence[str], keywords: Iterable[str]) -> list[str]:
+    """Which keywords start one of these identifier words.
+
+    Prefix rather than substring, and that is the whole difference between a
+    rule and a nuisance: ``cardnumber`` starts with ``card`` and is a card
+    field, while ``discard`` merely contains it and is a button. Multi-word
+    keywords are left to the prose matcher -- identifiers do not contain
+    spaces.
+    """
+    hits = []
+    for keyword in keywords:
+        if " " in keyword or len(keyword) < MIN_IDENTIFIER_PREFIX:
+            continue
+        if any(word == keyword or word.startswith(keyword) for word in words):
+            hits.append(keyword)
+    return hits
+
+
+@dataclass(frozen=True)
+class DomField:
+    """One input on a web page, as the DOM describes it.
+
+    Built by ``actions.read_fields`` from one ``page.evaluate`` call. Kept as a
+    plain dataclass with no Playwright in it so the rule below is a pure
+    function of the page's own description of itself, and can be tested with a
+    literal.
+
+    ``rect`` is ``(x, y, width, height)`` in CSS pixels relative to the
+    viewport -- what ``getBoundingClientRect`` gives. Turning that into a screen
+    rectangle for the overlay is ``actions``' job, not the guard's.
+    """
+
+    #: ``input``, ``textarea``, ``select``.
+    tag: str = "input"
+    #: The ``type`` attribute, lower-cased. ``"password"`` is decisive.
+    type: str = "text"
+    autocomplete: str = ""
+    #: The field's own identifiers, plus any label text pointing at it.
+    name: str = ""
+    id: str = ""
+    placeholder: str = ""
+    label: str = ""
+    #: False for ``display:none``, zero-sized and ``type=hidden`` fields. An
+    #: invisible field is not one she is about to type into, and circling it
+    #: would put a ring around nothing.
+    visible: bool = True
+    rect: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
+    #: A selector that finds this field again, for logging only. Never built
+    #: from her data.
+    selector: str = ""
+
+    @property
+    def described_as(self) -> str:
+        """The field's *prose*: its label and placeholder, as one string.
+
+        Matched whole-word, because this is English and "Discard this draft"
+        must not read as a card field.
+        """
+        return normalise(" ".join((self.label, self.placeholder)))
+
+    @property
+    def identifiers(self) -> list[str]:
+        """The field's ``name`` and ``id``, split into words.
+
+        These are not prose, they are code, and they are written
+        ``cardnumber``, ``cardNumber``, ``card_number`` and ``otpInput`` by
+        turns -- the demo payment page uses ``id="cardnumber"`` because that is
+        what pages really look like. Whole-word matching misses every one of
+        those, so identifiers are split on case changes and separators and then
+        matched by prefix (see :func:`_identifier_hits`).
+        """
+        return _identifier_words(f"{self.name} {self.id}")
+
+
+def sensitive_dom_field(field: DomField) -> str:
+    """Why this field is hers to fill, or ``""`` if Tiny Me may fill it.
+
+    Four signals, cheapest and most certain first. The order is not just
+    efficiency: ``type=password`` is a fact about the field, while a label is a
+    claim about it, and the reason string records which one fired so a surprise
+    in the logs can be traced to the rule that caused it.
+
+    Invisible fields return ``""``: nothing can be typed into them and nothing
+    can be circled. The hidden inputs that carry the route between pages on the
+    demo site are exactly this case.
+    """
+    if not field.visible:
+        return ""
+
+    if (field.type or "").strip().casefold() == "password":
+        return "password"
+
+    autocomplete = normalise(field.autocomplete).replace(" ", "-")
+    if autocomplete.startswith(CC_AUTOCOMPLETE_PREFIX):
+        return f"autocomplete:{autocomplete}"
+    if autocomplete in OTP_AUTOCOMPLETE:
+        return "autocomplete:one-time-code"
+
+    hits = _found([field.described_as], DOM_LABEL_KEYWORDS)
+    if hits:
+        return "label:" + ",".join(sorted(hits))
+
+    hits = _identifier_hits(field.identifiers, DOM_LABEL_KEYWORDS)
+    if hits:
+        return "name:" + ",".join(sorted(hits))
+
+    return ""
+
+
+def first_sensitive_field(fields: Iterable[DomField]) -> tuple[DomField, str] | None:
+    """The first field on this page that is hers, with the reason. None if clear.
+
+    "First" is document order, which is also reading order on every page we
+    care about: on a login page that is the password box rather than the
+    username above it, which is the box she needs to be looking at.
+    """
+    for field in fields:
+        reason = sensitive_dom_field(field)
+        if reason:
+            log.info("dom guard: handing over a field (%s)", reason)
+            return field, reason
+    return None
+
+
+#: What the overlay says over a field she has to fill in herself. Her words,
+#: not ours: MASTERSPEC 3B quotes this line.
+DOM_HANDOVER_MESSAGE = "You type your own password, I'll wait."
+
+#: The same promise where "password" would be wrong.
+DOM_HANDOVER_MESSAGES = {
+    "password": "You type your own password, I'll wait.",
+    "otp": "You type the code from your phone, I'll wait.",
+    "payment": "Your card details are yours to type. I'll wait.",
+}
+
+
+def handover_message(reason: str) -> str:
+    """The sentence that goes with a handover reason.
+
+    Keyed off the reason the guard gave rather than off the page, so the words
+    she reads and the rule that fired cannot drift apart.
+    """
+    if "one-time-code" in reason or "otp" in reason:
+        return DOM_HANDOVER_MESSAGES["otp"]
+    if "cc-" in reason or any(word in reason for word in ("cvv", "cvc", "card", "upi")):
+        return DOM_HANDOVER_MESSAGES["payment"]
+    return DOM_HANDOVER_MESSAGES["password"]
+
+
 def handover_plan(reason: str = "") -> StepPlan:
     """The "step" we show instead of calling the model on a private screen.
 

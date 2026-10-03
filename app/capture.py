@@ -100,6 +100,41 @@ def foreground_rect() -> Bbox | None:
         return None
 
 
+def screen_scale() -> float:
+    """Physical pixels per logical pixel on the primary monitor (1.25 at 125%).
+
+    Qt is the app's authority on this (``overlay.dpr``, CLAUDE.md rule 9) and
+    callers that have an overlay should pass that instead. This exists for the
+    code that has no Qt to ask: the booking flow on a worker thread, and the
+    one-shot scripts.
+
+    Measured rather than queried, because the obvious queries lie in this
+    process. ``GetDpiForSystem`` and ``GetDeviceCaps(LOGPIXELSX)`` both return
+    96 here -- Python is not marked DPI-aware, so Windows virtualises the
+    answer and reports 100% on a 125% display. What it does *not* virtualise is
+    ``mss``, which goes to the desktop surface and sees 1920x1080, while
+    ``GetSystemMetrics`` sees the virtualised 1536x864. The ratio of those two
+    is the real scale.
+
+    Returns 1.0 if either measurement is unavailable, which is the safe
+    direction: an un-scaled circle is in the right place on an un-scaled
+    screen, and this is the only caller-visible failure.
+    """
+    try:
+        import ctypes
+
+        logical_w = int(ctypes.windll.user32.GetSystemMetrics(0))
+        with mss.mss() as sct:
+            physical_w = int(sct.monitors[1]["width"])
+    except Exception:
+        log.debug("could not measure the screen scale", exc_info=True)
+        return 1.0
+
+    if logical_w <= 0 or physical_w <= 0:
+        return 1.0
+    return physical_w / logical_w
+
+
 def taskbar_rect() -> Bbox | None:
     """Physical-pixel (l, t, r, b) of the taskbar, or None.
 

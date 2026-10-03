@@ -1,0 +1,63 @@
+<!doctype html>
+<!--
+  Demo site, page 4 of 5: the one-time code.
+
+  Note what this page does *not* have: no `input[type=password]`. The field is
+  an ordinary text box, which is how real OTP pages are built. What gives it
+  away is `autocomplete="one-time-code"` and the label, and those are the two
+  signals the DOM guard relies on here (CLAUDE.md rule 5).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Rail - One-time code</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="name">Demo Rail</span>
+  <span class="tag">practice booking site</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Check your phone</h1>
+    <p class="lead">We sent a 6-digit code to the number on your account.</p>
+
+    <form action="payment.html" method="get">
+      <label for="otp">One-time password (OTP)</label>
+      <input type="text" id="otp" name="otp" inputmode="numeric" maxlength="6"
+             autocomplete="one-time-code" placeholder="6-digit code">
+
+      <button type="submit" id="verify">Verify</button>
+    </form>
+
+    <p class="note">
+      This is a practice page. Any six digits will do - nothing is sent to any
+      phone.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <strong>Demo site.</strong> Not a real railway. Nothing is booked, nothing is
+  charged, and no details are sent anywhere.
+</footer>
+
+<script>
+  (function () {
+    var form = document.querySelector("form");
+    var q = new URLSearchParams(location.search);
+    ["from", "to", "date"].forEach(function (key) {
+      if (!q.get(key)) { return; }
+      var hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = key;
+      hidden.value = q.get(key);
+      form.appendChild(hidden);
+    });
+  })();
+</script>
+</body>
+</html>

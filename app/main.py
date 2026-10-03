@@ -480,6 +480,11 @@ class PromptWindow(QWidget):
     #: (MASTERSPEC 3A, 4). A separate signal rather than a mode flag, so the
     #: guide path cannot accidentally start doing things for her.
     find_requested = Signal(str)
+    #: "Do it for me": the booking flow (MASTERSPEC 3B). Its own signal for the
+    #: same reason as ``find_requested`` -- what Tiny Me is allowed to *do* is
+    #: decided by which button she pressed plus ``guard.can_do_it``, never by
+    #: the model.
+    do_requested = Signal(str)
     did_it = Signal()
     stopped = Signal()
 
@@ -497,6 +502,8 @@ class PromptWindow(QWidget):
         self._go.clicked.connect(self._submit)
         self._find = QPushButton("Find it for me")
         self._find.clicked.connect(self._find_it)
+        self._do = QPushButton("Do it for me")
+        self._do.clicked.connect(self._do_it)
         self._done = QPushButton("I did it")
         self._done.clicked.connect(self.did_it.emit)
         self._stop = QPushButton("Stop")
@@ -507,6 +514,7 @@ class PromptWindow(QWidget):
         buttons.addStretch(1)
         buttons.addWidget(self._done)
         buttons.addWidget(self._find)
+        buttons.addWidget(self._do)
         buttons.addWidget(self._go)
 
         layout = QVBoxLayout(self)
@@ -525,6 +533,11 @@ class PromptWindow(QWidget):
         """"Find it for me" works with an empty box: that means "the newest one"."""
         self.find_requested.emit(self._box.text().strip())
 
+    def _do_it(self) -> None:
+        goal = self._box.text().strip()
+        if goal:
+            self.do_requested.emit(goal)
+
     def ask(self) -> None:
         """Show, focus and raise. Called on the main thread only."""
         self._box.selectAll()
@@ -539,6 +552,7 @@ class PromptWindow(QWidget):
     def set_busy(self, busy: bool) -> None:
         self._go.setEnabled(not busy)
         self._find.setEnabled(not busy)
+        self._do.setEnabled(not busy)
         self._box.setEnabled(not busy)
 
     def set_task_active(self, active: bool) -> None:
@@ -562,12 +576,21 @@ class TinyMe(QObject):
     slow step into a backlog of captures.
     """
 
+    #: Emitted from the booking worker when a field is hers to fill. Carries
+    #: a physical-pixel bbox (or None) and the words to show. A signal rather
+    #: than a direct call because the emitter is on a worker thread and the
+    #: overlay is a widget (CLAUDE.md rule 8).
+    handover = Signal(object, str)
+    #: Emitted from the booking worker once she has moved on.
+    handover_over = Signal()
+
     def __init__(self) -> None:
         super().__init__()
         self.overlay = Overlay()
         self.window = PromptWindow()
         self.window.submitted.connect(self.start_task)
         self.window.find_requested.connect(self.find_for_her)
+        self.window.do_requested.connect(self.do_for_her)
         self.window.did_it.connect(self.mark_done)
         self.window.stopped.connect(self.stop_everything)
 
@@ -575,7 +598,13 @@ class TinyMe(QObject):
         self.hotkeys.opened.connect(self.window.ask)
         self.hotkeys.paused.connect(self.stop_everything)
 
+        self.handover.connect(self._circle_handover)
+        self.handover_over.connect(self._handover_done)
+
         self.loop: TaskLoop | None = None
+        #: Read by the booking flow on its own thread between every action, so
+        #: Ctrl+Alt+P ends it promptly instead of at the end of the page.
+        self._stopping = False
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._tick)
@@ -608,6 +637,7 @@ class TinyMe(QObject):
         that is already DONE, where its result is ignored.
         """
         log.info("pause requested")
+        self._stopping = True
         self._timer.stop()
         if self.loop is not None:
             self.loop.stop()
@@ -628,6 +658,7 @@ class TinyMe(QObject):
             return  # A job is already running; ignore a double press.
 
         self._timer.stop()
+        self._stopping = False
         self.overlay.clear()
         # Reading the notes file is a few lines off a warm disk, so it happens
         # here rather than earning its own worker hop; the goal has to be known
@@ -671,6 +702,70 @@ class TinyMe(QObject):
         log.info("find-it-for-me: opened=%s because=%s", result.opened,
                  result.hit.because if result.hit else "nothing")
         self.window.set_status(result.message)
+
+    def do_for_her(self, goal: str) -> None:
+        """"Do it for me": the booking flow (MASTERSPEC 3B, P9).
+
+        A headed browser opens, the route and date go in, and it stops at her
+        password with a circle around it. Everything after that is hers.
+
+        The flow runs on the worker thread and must never touch the overlay, so
+        it is handed two callbacks that only emit (CLAUDE.md rule 8). Qt
+        delivers those emissions to :meth:`_circle_handover` and
+        :meth:`_handover_done` on the main thread.
+        """
+        if self._busy:
+            return
+        self._timer.stop()
+        if self.loop is not None:
+            self.loop.stop()
+            self.loop = None
+        self._stopping = False
+        self.overlay.clear()
+        self.window.set_task_active(True)
+        self.window.set_status("Opening the booking page. Watch what I type.")
+        self.window.set_busy(True)
+        # Read Qt's device pixel ratio here, on the main thread: it is the
+        # app's one authority on screen scaling (CLAUDE.md rule 9), and the
+        # worker must not touch a QScreen to ask for it.
+        self._run(
+            lambda scale=self.overlay.dpr: actions_mod.book_for_her(
+                goal,
+                on_handover=self.handover.emit,
+                on_resume=self.handover_over.emit,
+                is_stopped=lambda: self._stopping,
+                screen_scale=scale,
+            ),
+            self._booking_done,
+        )
+
+    def _circle_handover(self, bbox: object, message: str) -> None:
+        """Her field needs her. Draw the circle and say so. Main thread.
+
+        ``bbox`` arrives as ``object`` because it may be None: if the browser
+        window could not be located on screen we say the words without a
+        circle, rather than drawing a ring somewhere wrong on a password box.
+        """
+        log.info("overlay: handing over%s", "" if bbox else " (no circle: no rect)")
+        if bbox is None:
+            self.overlay.show_message(message)
+        else:
+            self.overlay.show_circle(bbox, message)  # type: ignore[arg-type]
+        self.window.set_status(message)
+
+    def _handover_done(self) -> None:
+        """She has moved on. Take the circle down. Main thread."""
+        self.overlay.clear()
+        self.window.set_status("Thank you - carrying on.")
+
+    def _booking_done(self, outcome: actions_mod.BookingOutcome) -> None:
+        """The flow finished, stopped or handed over for good. Main thread."""
+        log.info("booking: ended=%s filled=%d handovers=%d",
+                 outcome.ended, len(outcome.filled), len(outcome.handovers))
+        self.overlay.clear()
+        self.overlay.set_looking(False)
+        self.window.set_task_active(False)
+        self.window.set_status(outcome.message)
 
     def mark_done(self) -> None:
         """"I did it": force this step to succeed and move on (MASTERSPEC 5.5)."""
@@ -897,6 +992,9 @@ def main() -> int:
         return app.exec()
     finally:
         tiny.hotkeys.stop()
+        # Any browser we opened for her closes with the app, not with the
+        # task: during a task she is still typing in it (actions.close_browser).
+        actions_mod.close_browser()
 
 
 if __name__ == "__main__":

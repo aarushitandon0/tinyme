@@ -1,0 +1,60 @@
+<!doctype html>
+<!--
+  Demo site, page 1 of 5: search.
+
+  Why this exists: real ticketing sites forbid automation in their terms and
+  put CAPTCHAs in the way (MASTERSPEC 3B). This is a stand-in with the same
+  shape, so the handover logic can be demonstrated honestly. The footer says so
+  on every page.
+
+  Nothing here talks to a server. Forms are GET forms that carry their values
+  in the query string, which is also what lets the Playwright flow in
+  app/actions.py verify that what it typed arrived.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Rail - Find trains</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="name">Demo Rail</span>
+  <span class="tag">practice booking site</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Find trains</h1>
+    <p class="lead">Pick where you are going and when.</p>
+    <p class="steps"><b>Step 1 of 4</b> &middot; Search &middot; Choose a train &middot; Sign in &middot; Pay</p>
+
+    <form action="results.html" method="get">
+      <div class="row">
+        <div>
+          <label for="from">From</label>
+          <input type="text" id="from" name="from" autocomplete="off"
+                 placeholder="Station you are leaving from">
+        </div>
+        <div>
+          <label for="to">To</label>
+          <input type="text" id="to" name="to" autocomplete="off"
+                 placeholder="Station you are going to">
+        </div>
+      </div>
+
+      <label for="date">Date of travel</label>
+      <input type="date" id="date" name="date">
+
+      <button type="submit" id="search">Search trains</button>
+    </form>
+  </div>
+</main>
+
+<footer>
+  <strong>Demo site.</strong> Not a real railway. Nothing is booked, nothing is
+  charged, and no details are sent anywhere.
+</footer>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  Demo site, page 5 of 5: payment.
+
+  Three deliberately different kinds of field, so the DOM guard is tested on
+  more than one signal:
+
+  * card number  - `autocomplete="cc-number"`, the easy case
+  * expiry       - `autocomplete="cc-exp"`
+  * CVV          - **no autocomplete attribute at all** and an ordinary text
+                   type. Only its label says what it is. Plenty of real
+                   checkout pages are built exactly this carelessly, and a
+                   guard that needs the attribute would type into it.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Rail - Payment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="name">Demo Rail</span>
+  <span class="tag">practice booking site</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Payment</h1>
+    <p class="lead" id="trip">Morning Express &middot; &#8377; 540</p>
+    <p class="steps">Search &middot; Choose a train &middot; Sign in &middot; <b>Step 4 of 4</b> &middot; Pay</p>
+
+    <form action="done.html" method="get">
+      <label for="cardname">Name on card</label>
+      <input type="text" id="cardname" name="cardname" autocomplete="cc-name"
+             placeholder="As printed on the card">
+
+      <label for="cardnumber">Card number</label>
+      <input type="text" id="cardnumber" name="cardnumber" inputmode="numeric"
+             autocomplete="cc-number" placeholder="16 digits">
+
+      <div class="row">
+        <div>
+          <label for="expiry">Expiry date</label>
+          <input type="text" id="expiry" name="expiry" autocomplete="cc-exp"
+                 placeholder="MM / YY">
+        </div>
+        <div>
+          <!-- No autocomplete here on purpose: the label is the only signal. -->
+          <label for="cvv">CVV</label>
+          <input type="text" id="cvv" name="cvv" inputmode="numeric"
+                 maxlength="4" placeholder="3 digits on the back">
+        </div>
+      </div>
+
+      <button type="submit" id="pay">Pay &#8377; 540</button>
+    </form>
+
+    <p class="note">
+      This is a practice page. Do not type a real card number - there is
+      nowhere for it to go, and no reason to.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <strong>Demo site.</strong> Not a real railway. Nothing is booked, nothing is
+  charged, and no details are sent anywhere.
+</footer>
+
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var from = q.get("from"), to = q.get("to");
+    if (from && to) {
+      document.getElementById("trip").textContent =
+        "Morning Express · " + from + " to " + to + " · ₹ 540";
+    }
+  })();
+</script>
+</body>
+</html>
