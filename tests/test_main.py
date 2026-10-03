@@ -71,7 +71,7 @@ def run(step_plan: StepPlan, elements=None, goal="find my bill", history=(),
         goal,
         history=history,
         grab=fake_capture,
-        read=lambda image, monitor: (
+        read=lambda image, monitor, span=None: (
             raw_elements() if elements is None else elements, 95.0
         ),
         planner=planner,
@@ -348,7 +348,7 @@ class TestTheGuardGatesTheModel:
         outcome = plan_next_step(
             "log in to my bank",
             grab=fake_capture,
-            read=lambda image, monitor: (elements, 95.0),
+            read=lambda image, monitor, span=None: (elements, 95.0),
             planner=planner,
             window_reader=lambda: watcher.WindowInfo(title=window_title),
         )
@@ -398,7 +398,7 @@ class TestWhatTheWatchIsGiven:
         return plan_next_step(
             "find my bill",
             grab=fake_capture,
-            read=lambda image, monitor: (raw_elements(), 95.0),
+            read=lambda image, monitor, span=None: (raw_elements(), 95.0),
             planner=planner_returning(plan(target_id=target_id)),
             window_reader=lambda: watcher.WindowInfo(
                 class_name="CabinetWClass", title="Downloads", hwnd=77),
@@ -420,7 +420,7 @@ class TestWhatTheWatchIsGiven:
         outcome = plan_next_step(
             "find my bill",
             grab=fake_capture,
-            read=lambda image, monitor: (raw_elements(), 95.0),
+            read=lambda image, monitor, span=None: (raw_elements(), 95.0),
             planner=planner_returning(plan(target_id=0, cannot_see_it=True)),
             window_reader=lambda: watcher.WindowInfo(),
         )

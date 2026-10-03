@@ -11,6 +11,40 @@ lives here and nowhere else.
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+#: Where the developer's own settings live: the Sentry DSN, and the telemetry
+#: flag if they would rather not export it every session. Gitignored, never on
+#: her laptop, and read here rather than by ``telemetry.py`` because this is the
+#: module that turns environment into knobs -- and because the flag has to be
+#: in ``os.environ`` before the lines below read it.
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+
+
+def _load_env_file(path: Path = ENV_FILE) -> None:
+    """Copy ``KEY=value`` lines from ``.env`` into the environment.
+
+    A real environment variable always wins, so ``TINYME_TELEMETRY=1 python -m
+    app.main`` still works on a machine whose ``.env`` says otherwise. Written
+    out by hand rather than pulling in python-dotenv: it is nine lines, and
+    CLAUDE.md asks for a reason before every new dependency.
+
+    Anything malformed is skipped in silence. A missing or unreadable file is
+    the normal case -- it is what her laptop looks like.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+_load_env_file()
 
 # --- model -----------------------------------------------------------------
 
@@ -40,6 +74,13 @@ HOTKEY_PAUSE = "<ctrl>+<alt>+p"
 
 #: MASTERSPEC 5.5: stop after this many steps rather than looping forever.
 MAX_STEPS = 12
+
+#: What the on-screen counter shows as the total before the loop knows better.
+#: Purely cosmetic: the loop plans one step at a time and never knows how many
+#: there will be, and the three demo scenes are all three steps long
+#: (MASTERSPEC 3). The counter raises this to the real index when a task runs
+#: longer, so it can read "Step 5 of 5" but never "Step 5 of 3".
+MIN_EXPECTED_STEPS = 3
 
 #: MASTERSPEC 5.5: how often the watcher checks whether the step worked.
 POLL_INTERVAL_MS = 1000

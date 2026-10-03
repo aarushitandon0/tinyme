@@ -30,16 +30,8 @@ from typing import Callable, Sequence
 
 import numpy as np
 
-from PySide6.QtCore import QObject, QThread, QTimer, Qt, Signal
-from PySide6.QtWidgets import (
-    QApplication,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import QObject, QThread, QTimer, Signal
+from PySide6.QtWidgets import QApplication
 
 from app import actions as actions_mod
 from app import brain as brain_mod
@@ -47,6 +39,7 @@ from app import capture as capture_mod
 from app import config
 from app import guard as guard_mod
 from app import ocr as ocr_mod
+from app import telemetry as telemetry_mod
 from app import uia as uia_mod
 from app import watcher as watcher_mod
 from app.brain import BrainResult, StepPlan, plan_step
@@ -60,6 +53,8 @@ from app.elements import (
     number_elements,
 )
 from app.overlay import CaptureMode, Overlay
+from app.telemetry import NULL_SPAN, NO_TRACE, SpanHandle, TaskTrace, Tool
+from app.ui import PromptWindow
 from app.watcher import Outcome as WatchOutcome
 from app.watcher import Screen, StepWatch, WindowInfo
 
@@ -118,14 +113,19 @@ WindowStage = Callable[[], WindowInfo]
 GuardStage = Callable[..., guard_mod.Verdict]
 
 
-def _read_screen(image: np.ndarray, monitor: Monitor) -> tuple[list[Element], float]:
+def _read_screen(
+    image: np.ndarray,
+    monitor: Monitor,
+    span: SpanHandle = NULL_SPAN,
+) -> tuple[list[Element], float]:
     """Default read stage: OCR plus UI Automation, merged (MASTERSPEC 5.2).
 
     OCR runs first and always; UIA is the part that can time out or throw, and
-    when it does we carry on with OCR only. ``uia_ms`` and ``ocr_ms`` are logged
-    separately because MASTERSPEC 8 wants both on the read_screen span, and
-    because knowing which of the two costs the most is the whole point of the
-    eval.
+    when it does we carry on with OCR only. ``uia_ms`` and ``ocr_ms`` are
+    reported separately -- in the log and on ``span`` -- because MASTERSPEC 8
+    wants both, and because knowing which of the two costs the most is the whole
+    point of the eval. Only this function knows the split, so only this function
+    can put it on the span; ``span`` is a no-op handle unless telemetry is on.
 
     Returns:
         (merged elements, read_ms) where read_ms covers both sources.
@@ -137,6 +137,7 @@ def _read_screen(image: np.ndarray, monitor: Monitor) -> tuple[list[Element], fl
         "read screen: ocr %d in %.0f ms, uia %d in %.0f ms, merged %d",
         len(ocr_elements), ocr_ms, len(uia_elements), uia_ms, len(merged),
     )
+    span.set_many({"tinyme.ocr_ms": ocr_ms, "tinyme.uia_ms": uia_ms})
     return merged, ocr_ms + uia_ms
 
 
@@ -149,6 +150,7 @@ def plan_next_step(
     planner: PlanStage = plan_step,
     window_reader: WindowStage = watcher_mod.read_window,
     sensitive: GuardStage = guard_mod.is_sensitive,
+    trace: TaskTrace = NO_TRACE,
 ) -> StepOutcome:
     """Capture, read, **guard**, ask the model, resolve the target.
 
@@ -167,22 +169,41 @@ def plan_next_step(
     validates that the id was in the list, and this returns None rather than a
     guess if it somehow was not. Nothing is worse than a confident circle
     around the wrong thing.
-    """
-    shot = grab()
-    found, read_ms = read(shot.image, shot.monitor)
 
-    elements = number_elements(
-        cap_elements(
-            found,
-            taskbar_rect=capture_mod.taskbar_rect(),
-            foreground_rect=capture_mod.foreground_rect(),
+    ``trace`` is this step's slice of the task's Sentry trace (MASTERSPEC 8).
+    It defaults to a trace that does nothing, which is what it is on her
+    laptop, so the spans below are structure rather than a cost.
+    """
+    with trace.tool(Tool.CAPTURE) as span:
+        shot = grab()
+        span.set("tinyme.capture_ms", shot.elapsed_ms)
+
+    with trace.tool(Tool.READ_SCREEN) as span:
+        found, read_ms = read(shot.image, shot.monitor, span)
+
+        elements = number_elements(
+            cap_elements(
+                found,
+                taskbar_rect=capture_mod.taskbar_rect(),
+                foreground_rect=capture_mod.foreground_rect(),
+            )
         )
-    )
+        # The count the model actually sees, after the cap -- not the raw
+        # number of boxes OCR found, which would overstate the prompt size.
+        span.set_many({"tinyme.read_ms": read_ms,
+                       "tinyme.element_count": len(elements)})
 
     window = window_reader()
     offset = (shot.monitor.left, shot.monitor.top)
 
-    verdict = sensitive(elements, window.title)
+    with trace.tool(Tool.GUARD) as span:
+        verdict = sensitive(elements, window.title)
+        # The outcome, never the reason: the reason names the keywords that
+        # fired, which is screen text (CLAUDE.md rule 7).
+        span.set("tinyme.outcome",
+                 telemetry_mod.Outcome.PAUSED if verdict.sensitive
+                 else telemetry_mod.Outcome.CLEAR)
+
     if verdict.sensitive:
         log.info("guard held this screen back; no model call (%s)", verdict.reason)
         return StepOutcome(
@@ -198,7 +219,20 @@ def plan_next_step(
             paused_reason=verdict.reason,
         )
 
-    result = planner(goal, elements, history=history, teach_notes=teach_notes)
+    with trace.chat(config.MODEL) as span:
+        result = planner(goal, elements, history=history, teach_notes=teach_notes)
+        span.set_many({
+            "gen_ai.usage.input_tokens": result.prompt_tokens,
+            "gen_ai.usage.output_tokens": result.output_tokens,
+            "tinyme.model_ms": result.elapsed_ms,
+            "tinyme.retried": result.retried,
+            # A fallback plan is one we synthesised because the model's reply
+            # never validated (or never arrived), so these two are the same
+            # fact seen from the two sides MASTERSPEC 8 asks about.
+            "tinyme.valid_json": not result.fell_back,
+            "tinyme.fell_back": result.fell_back,
+        })
+
     target = find_by_id(elements, result.plan.target_id)
 
     log.info(
@@ -220,6 +254,45 @@ def plan_next_step(
         ),
         monitor_offset=offset,
     )
+
+
+# --- the two one-shot actions, traced -------------------------------------
+# "Find it for me" and the booking flow are not guided steps -- no model call,
+# no circle, no success check -- but they are still things Tiny Me did on her
+# behalf, so each gets its own trace with one tool span (MASTERSPEC 8). These
+# live at module level, free of Qt, because they run on the worker thread and
+# must not touch a widget (CLAUDE.md rule 8).
+
+
+def _find_stage(goal: str, trace: TaskTrace) -> actions_mod.FindResult:
+    """Run the file search inside a ``find_file`` span."""
+    with trace.tool(Tool.FIND_FILE) as span:
+        result = actions_mod.find_for_her(goal)
+        # Whether it found something, never what it found: the filename is
+        # hers (CLAUDE.md rule 7).
+        span.set("tinyme.outcome",
+                 telemetry_mod.Outcome.OK if result.opened
+                 else telemetry_mod.Outcome.NOT_FOUND)
+    return result
+
+
+def _book_stage(trace: TaskTrace, goal: str, **kwargs: object) -> actions_mod.BookingOutcome:
+    """Run the booking flow inside a ``book`` span.
+
+    The counts are the two numbers worth having: how many fields it filled for
+    her, and how many times it stopped and handed one back. The second is the
+    safety claim of Scene B expressed as a number, which is exactly what makes
+    it checkable from the dashboard rather than from a demo video.
+    """
+    with trace.tool(Tool.BOOK) as span:
+        outcome = actions_mod.book_for_her(goal, **kwargs)  # type: ignore[arg-type]
+        span.set_many({
+            "tinyme.filled_fields": len(outcome.filled),
+            "tinyme.handovers": len(outcome.handovers),
+            "tinyme.outcome": (telemetry_mod.Outcome.HANDED_OVER
+                               if outcome.handovers else telemetry_mod.Outcome.OK),
+        })
+    return outcome
 
 
 # --- the multi-step loop ---------------------------------------------------
@@ -460,105 +533,13 @@ class HotkeyBridge(QObject):
 
 
 # --- the window ------------------------------------------------------------
-
-
-class PromptWindow(QWidget):
-    """Her way in: a text box and three buttons.
-
-    A separate, normal, clickable window -- MASTERSPEC 5.6 is explicit that the
-    overlay is click-through and this is not.
-
-    "I did it" is always visible during a task (MASTERSPEC 5.5). It is the
-    escape hatch for every way a success check can be wrong: she clicked the
-    right thing, the check disagreed, and she should not have to argue with a
-    circle. "Stop" is the same thing as Ctrl+Alt+P for someone who would rather
-    press a button than remember a chord.
-    """
-
-    submitted = Signal(str)
-    #: "Find it for me": the one thing Tiny Me does *instead* of guiding
-    #: (MASTERSPEC 3A, 4). A separate signal rather than a mode flag, so the
-    #: guide path cannot accidentally start doing things for her.
-    find_requested = Signal(str)
-    #: "Do it for me": the booking flow (MASTERSPEC 3B). Its own signal for the
-    #: same reason as ``find_requested`` -- what Tiny Me is allowed to *do* is
-    #: decided by which button she pressed plus ``guard.can_do_it``, never by
-    #: the model.
-    do_requested = Signal(str)
-    did_it = Signal()
-    stopped = Signal()
-
-    def __init__(self) -> None:
-        super().__init__(None, Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowTitle("Tiny Me")
-
-        self._status = QLabel("What would you like to do?")
-        self._status.setWordWrap(True)
-        self._box = QLineEdit()
-        self._box.setPlaceholderText("I can't find the file I downloaded")
-        self._box.returnPressed.connect(self._submit)
-
-        self._go = QPushButton("Show me how")
-        self._go.clicked.connect(self._submit)
-        self._find = QPushButton("Find it for me")
-        self._find.clicked.connect(self._find_it)
-        self._do = QPushButton("Do it for me")
-        self._do.clicked.connect(self._do_it)
-        self._done = QPushButton("I did it")
-        self._done.clicked.connect(self.did_it.emit)
-        self._stop = QPushButton("Stop")
-        self._stop.clicked.connect(self.stopped.emit)
-
-        buttons = QHBoxLayout()
-        buttons.addWidget(self._stop)
-        buttons.addStretch(1)
-        buttons.addWidget(self._done)
-        buttons.addWidget(self._find)
-        buttons.addWidget(self._do)
-        buttons.addWidget(self._go)
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(self._status)
-        layout.addWidget(self._box)
-        layout.addLayout(buttons)
-        self.resize(460, 160)
-        self.set_task_active(False)
-
-    def _submit(self) -> None:
-        goal = self._box.text().strip()
-        if goal:
-            self.submitted.emit(goal)
-
-    def _find_it(self) -> None:
-        """"Find it for me" works with an empty box: that means "the newest one"."""
-        self.find_requested.emit(self._box.text().strip())
-
-    def _do_it(self) -> None:
-        goal = self._box.text().strip()
-        if goal:
-            self.do_requested.emit(goal)
-
-    def ask(self) -> None:
-        """Show, focus and raise. Called on the main thread only."""
-        self._box.selectAll()
-        self.show()
-        self.raise_()
-        self.activateWindow()
-        self._box.setFocus()
-
-    def set_status(self, text: str) -> None:
-        self._status.setText(text)
-
-    def set_busy(self, busy: bool) -> None:
-        self._go.setEnabled(not busy)
-        self._find.setEnabled(not busy)
-        self._do.setEnabled(not busy)
-        self._box.setEnabled(not busy)
-
-    def set_task_active(self, active: bool) -> None:
-        """Only offer "I did it" and "Stop" while there is a task to do it to."""
-        self._done.setEnabled(active)
-        self._stop.setEnabled(active)
+# PromptWindow now lives in ``app.ui``: it grew from a text box and five
+# buttons into the whole home screen, and leaving ~900 lines of painting in
+# this file would bury the task loop it is wired to. The contract this module
+# depends on is unchanged -- the five signals and
+# ``ask``/``set_status``/``set_busy``/``set_task_active`` -- plus a few
+# optional calls (``begin_task``, ``push_step``, ``finish_task``, ``toast``)
+# that only ever affect what she sees.
 
 
 class TinyMe(QObject):
@@ -602,6 +583,11 @@ class TinyMe(QObject):
         self.handover_over.connect(self._handover_done)
 
         self.loop: TaskLoop | None = None
+        #: This task's Sentry trace (MASTERSPEC 8). Started on the main thread
+        #: when a task begins and read by the worker, which opens its stage
+        #: spans as explicit children -- see app/telemetry.py on why ambient
+        #: scope does not survive the thread hop. ``NO_TRACE`` on her laptop.
+        self.trace: TaskTrace = NO_TRACE
         #: Read by the booking flow on its own thread between every action, so
         #: Ctrl+Alt+P ends it promptly instead of at the end of the page.
         self._stopping = False
@@ -618,6 +604,10 @@ class TinyMe(QObject):
     def start(self) -> None:
         # Settle which capture path keeps the overlay out of our screenshots
         # before the first real step, so OCR never reads our own label back.
+        # Dev machines only, and it says so in the log either way so that an
+        # eval run with telemetry accidentally off is obvious at the start
+        # rather than at the end (CLAUDE.md rule 7).
+        telemetry_mod.init()
         mode = self.overlay.verify_capture_exclusion()
         log.info("capture mode: %s", mode.value)
         # COM's first call costs ~450 ms. Pay it now, not inside the 300 ms
@@ -645,6 +635,7 @@ class TinyMe(QObject):
         self.overlay.clear()
         self.window.set_task_active(False)
         self.window.set_status("Stopped. Press Ctrl+Alt+H when you want me again.")
+        self._end_trace("stopped")
 
     # --- running a task -----------------------------------------------------
 
@@ -667,8 +658,11 @@ class TinyMe(QObject):
         notes = brain_mod.notes_for_goal(goal)
         if notes:
             log.info("including %d teach note(s) with this goal", len(notes))
+        # One trace per task (MASTERSPEC 8). The goal is not on it.
+        self.trace = telemetry_mod.start_task()
         self.loop = TaskLoop(goal, planner=self._plan_stage, teach_notes=notes)
         self.window.set_task_active(True)
+        self.window.begin_task(goal)
         self.window.set_status("Looking at your screen...")
         self.window.set_busy(True)
         self._run(self.loop.start, self._step_ready)
@@ -689,19 +683,27 @@ class TinyMe(QObject):
         self._timer.stop()
         if self.loop is not None:
             self.loop.stop()
+            self._end_trace("stopped")
             self.loop = None
         self.overlay.clear()
         self.overlay.set_looking(False)
         self.window.set_task_active(False)
         self.window.set_status("Looking in your Downloads folder...")
         self.window.set_busy(True)
-        self._run(lambda: actions_mod.find_for_her(goal), self._found_file)
+        self.trace = telemetry_mod.start_task()
+        trace = self.trace
+        self._run(lambda: _find_stage(goal, trace), self._found_file)
 
     def _found_file(self, result: actions_mod.FindResult) -> None:
         """The search came back. Main thread."""
         log.info("find-it-for-me: opened=%s because=%s", result.opened,
                  result.hit.because if result.hit else "nothing")
+        self._end_trace(telemetry_mod.Outcome.OK.value if result.opened
+                        else telemetry_mod.Outcome.NOT_FOUND.value)
         self.window.set_status(result.message)
+        self.window.toast("Found it" if result.opened else "I could not find it",
+                          result.message,
+                          "success" if result.opened else "warn")
 
     def do_for_her(self, goal: str) -> None:
         """"Do it for me": the booking flow (MASTERSPEC 3B, P9).
@@ -719,17 +721,23 @@ class TinyMe(QObject):
         self._timer.stop()
         if self.loop is not None:
             self.loop.stop()
+            self._end_trace("stopped")
             self.loop = None
         self._stopping = False
         self.overlay.clear()
         self.window.set_task_active(True)
+        self.window.begin_task(goal)
+        self.window.push_step(1, "Opening the booking page",
+                              "Watch what I type. I stop before anything private.")
         self.window.set_status("Opening the booking page. Watch what I type.")
         self.window.set_busy(True)
         # Read Qt's device pixel ratio here, on the main thread: it is the
         # app's one authority on screen scaling (CLAUDE.md rule 9), and the
         # worker must not touch a QScreen to ask for it.
+        self.trace = telemetry_mod.start_task()
         self._run(
-            lambda scale=self.overlay.dpr: actions_mod.book_for_her(
+            lambda scale=self.overlay.dpr, trace=self.trace: _book_stage(
+                trace,
                 goal,
                 on_handover=self.handover.emit,
                 on_resume=self.handover_over.emit,
@@ -751,6 +759,7 @@ class TinyMe(QObject):
             self.overlay.show_message(message)
         else:
             self.overlay.show_circle(bbox, message)  # type: ignore[arg-type]
+        self.window.handover_note(message)
         self.window.set_status(message)
 
     def _handover_done(self) -> None:
@@ -762,8 +771,13 @@ class TinyMe(QObject):
         """The flow finished, stopped or handed over for good. Main thread."""
         log.info("booking: ended=%s filled=%d handovers=%d",
                  outcome.ended, len(outcome.filled), len(outcome.handovers))
+        self._end_trace(
+            (telemetry_mod.Outcome.HANDED_OVER if outcome.handovers
+             else telemetry_mod.Outcome.OK).value
+        )
         self.overlay.clear()
         self.overlay.set_looking(False)
+        self.window.finish_task(outcome.message, ok=not outcome.handovers)
         self.window.set_task_active(False)
         self.window.set_status(outcome.message)
 
@@ -785,7 +799,8 @@ class TinyMe(QObject):
         touch, so when that is needed it happens on the main thread, in
         :meth:`_begin_capture`, before this is ever reached.
         """
-        return plan_next_step(goal, history=history, teach_notes=teach_notes)
+        return plan_next_step(goal, history=history, teach_notes=teach_notes,
+                              trace=self.trace)
 
     # --- the poll -----------------------------------------------------------
 
@@ -847,6 +862,18 @@ class TinyMe(QObject):
         loop = self.loop
         if loop is None:
             return
+        # The step she was on has just ended, one way or another, so this is
+        # the moment its wait is a known number (MASTERSPEC 8). Recorded before
+        # the next plan starts, so the spans come out in the order they
+        # happened in the trace.
+        step = loop.step
+        if step is not None:
+            self.trace.record_wait(
+                step.plan.success_check.type,
+                outcome,
+                step.watch.elapsed_s,
+                step_index=step.index,
+            )
         self._run(lambda: loop.advance(outcome), self._step_ready)
 
     # --- showing it ---------------------------------------------------------
@@ -863,7 +890,9 @@ class TinyMe(QObject):
         if step.paused:
             # CLAUDE.md rule 3: nothing was sent to the model, nothing is
             # circled, and we keep looking only to notice when she has moved on.
+            self.overlay.clear_step()
             self.overlay.show_message(step.plan.instruction)
+            self.window.privacy_hold(step.plan.instruction)
             self.window.set_status(step.plan.instruction)
             self._timer.start(config.PAUSED_POLL_INTERVAL_MS)
             self.overlay.set_looking(True)
@@ -871,10 +900,16 @@ class TinyMe(QObject):
 
         if step.target is None:
             # cannot_see_it: MASTERSPEC 5.3 says no circle, show the hint.
-            self.overlay.clear()
+            self.overlay.clear()  # takes the step counter down with it
         else:
             self.overlay.show_circle(step.target.bbox_px, step.plan.instruction)
 
+        # The counter goes on her screen, not just in our window: during a
+        # step she is looking at File Explorer, not at Tiny Me.
+        self.overlay.set_step(step.index,
+                              max(step.index, config.MIN_EXPECTED_STEPS))
+        self.window.push_step(step.index, step.plan.instruction,
+                              step.plan.hint_if_missing or "")
         self.window.set_status(self._status_for(step))
         self._timer.start(config.POLL_INTERVAL_MS)
         self.overlay.set_looking(True)
@@ -890,14 +925,36 @@ class TinyMe(QObject):
             return
         if loop.finished_because == "goal_reached" and step is not None:
             self.overlay.clear()
+            self.window.finish_task(step.message, ok=True)
             self.window.set_status(step.message)
         elif loop.finished_because == "max_steps":
             self.overlay.clear()
-            self.window.set_status(
-                "I have run out of steps for this one. Shall we try again?"
-            )
+            message = "I have run out of steps for this one. Shall we try again?"
+            self.window.finish_task(message, ok=False)
+            self.window.set_status(message)
         log.info("task finished: %s, %d recoveries, %d pauses",
                  loop.finished_because, loop.recoveries, loop.pauses)
+        self._end_trace(loop.finished_because)
+
+    def _end_trace(self, outcome: str, **attrs: object) -> None:
+        """Close this task's trace with its three summary counts.
+
+        Every way a task can end comes through here, because a trace that is
+        never finished is never sent, and an eval run would then show fewer
+        tasks than it ran -- the one telemetry bug that would quietly produce a
+        wrong number in the write-up.
+        """
+        loop = self.loop
+        self.trace.finish(
+            outcome=outcome,
+            **{
+                "tinyme.steps": loop.step_number if loop else 0,
+                "tinyme.recoveries": loop.recoveries if loop else 0,
+                "tinyme.pauses": loop.pauses if loop else 0,
+                **attrs,
+            },
+        )
+        self.trace = NO_TRACE
 
     def _rephrase(self, step: Step) -> None:
         """20 s and nothing has happened: say it once more, differently."""
@@ -907,6 +964,7 @@ class TinyMe(QObject):
             f"{step.message}\n\nStill waiting. {extra}\n"
             "If you have already done it, press “I did it”."
         )
+        self.window.toast("Still waiting", extra, "info")
 
     def _status_for(self, step: Step) -> str:
         message = step.message
@@ -976,6 +1034,10 @@ class TinyMe(QObject):
             self.loop.stop()
         self.window.set_task_active(False)
         self.window.set_status(f"Something went wrong: {message}")
+        self.window.toast("Something went wrong", message, "error")
+        # The outcome, not ``message``: that string came from an exception and
+        # could contain anything, including a path (CLAUDE.md rule 7).
+        self._end_trace(telemetry_mod.Outcome.FAILED.value)
 
 
 def main() -> int:

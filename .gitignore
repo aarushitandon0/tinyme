@@ -6,3 +6,12 @@ __pycache__/
 .env
 eval/screenshots/*.png
 docs/*.png
+
+# Developer-local deny-list for eval screenshots (eval/collect.py)
+eval/forbidden.txt
+
+# ...except the Sentry screenshots the post needs (MASTERSPEC 8). These show
+# the AI Agents dashboard and one trace: span names, latencies and token
+# counts, i.e. the numbers and enums telemetry.py is allowed to send. No screen
+# of hers appears in them, which is why they are the one exception above.
+!docs/sentry-*.png
