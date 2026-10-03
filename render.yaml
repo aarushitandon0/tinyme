@@ -1,0 +1,15 @@
+# Render blueprint: publishes the static mock booking site only.
+# The Tiny Me desktop app runs on Windows and is not deployed here.
+services:
+  - type: web
+    name: tiny-me-demo-site
+    runtime: static
+    staticPublishPath: ./demo_site
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
