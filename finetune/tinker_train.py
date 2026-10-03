@@ -59,7 +59,18 @@ BASE_MODEL = "Qwen/Qwen3.5-4B"
 
 #: ``tinker_cookbook.renderers.get_renderer`` needs the chat template's name,
 #: which tracks the model family rather than the exact id.
-RENDERER = "qwen3_5"
+#:
+#: **The disable-thinking variant, deliberately.** ``Qwen3_5Renderer`` ends the
+#: generation prompt with an open ``<think>\n``, which prefills the model into
+#: reasoning; with ``max_tokens=256`` in ``eval/run_eval.py`` the budget can go
+#: entirely on reasoning and the JSON never arrives, which would score as an
+#: invalid reply for reasons that have nothing to do with picking an element.
+#: ``Qwen3_5DisableThinkingRenderer`` prefills a closed empty block instead, so
+#: the answer starts immediately. tinker-cookbook's own examples
+#: (``rl/train.py``, ``preference/*``, ``eval/custom_evaluators.py``) all use
+#: this variant for structured output. ``run_eval.py`` must sample with the same
+#: renderer this trained with, or the tuned model meets a template it never saw.
+RENDERER = "qwen3_5_disable_thinking"
 
 #: USD per million training tokens for :data:`BASE_MODEL`, from the Models &
 #: Pricing page on 4 Oct 2026. Re-check before quoting a cost: it is a published

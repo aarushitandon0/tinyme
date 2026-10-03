@@ -1,0 +1,20 @@
+{
+  "base_model": "Qwen/Qwen3.5-4B",
+  "rank": 16,
+  "epochs": 3,
+  "learning_rate": 0.0002,
+  "batch": 8,
+  "examples": 80,
+  "train_seconds": 126.3,
+  "losses": [],
+  "checkpoint": "tinker://4105414f-991a-5ba4-8d2d-c78a8da47c48:train:0/sampler_weights/tinyme-picker",
+  "estimate": {
+    "examples": 80,
+    "tokens_per_epoch": 75994,
+    "epochs": 3,
+    "total_tokens": 227982,
+    "usd": 0.168,
+    "usd_per_mtok": 0.737,
+    "base_model": "Qwen/Qwen3.5-4B"
+  }
+}

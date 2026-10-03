@@ -531,8 +531,14 @@ TINKER_MODEL = os.environ.get("TINYME_TINKER_MODEL", "Qwen/Qwen3.5-4B")
 #: ``finetune/tinker_train.py``. Only ``tinker_tuned`` needs it.
 TINKER_CHECKPOINT = os.environ.get("TINYME_TINKER_CHECKPOINT", "")
 
-#: Chat template family for ``tinker_cookbook.renderers.get_renderer``.
-TINKER_RENDERER = os.environ.get("TINYME_TINKER_RENDERER", "qwen3_5")
+#: Chat template family for ``tinker_cookbook.renderers.get_renderer``. Must
+#: match ``finetune/tinker_train.py``'s ``RENDERER``: the tuned weights were
+#: trained against this template, and sampling them through a different one asks
+#: the model a question in a shape it never saw. The disable-thinking variant is
+#: the deliberate choice -- the plain ``qwen3_5`` renderer prefills an open
+#: ``<think>`` block, and the 256-token budget below can be spent reasoning
+#: before any JSON appears. See the note in ``tinker_train.py``.
+TINKER_RENDERER = os.environ.get("TINYME_TINKER_RENDERER", "qwen3_5_disable_thinking")
 
 _tinker_clients: dict[str, Any] = {}
 
@@ -587,13 +593,19 @@ def run_tinker(row: Row, checkpoint: str) -> Answer:
 
     started = time.perf_counter()
     try:
-        result = client.sample(prompt=prompt, num_samples=1, sampling_params=params)
+        # ``sample`` hands back a future, not a response -- the blocking call is
+        # ``sample_async``, despite the name. Reading ``.sequences`` off the
+        # future instead raises AttributeError in well under a millisecond, so
+        # the mistake shows up as every row failing instantly rather than as
+        # anything that looks like a network or a model problem.
+        future = client.sample(prompt=prompt, num_samples=1, sampling_params=params)
+        result = future.result()
         content, _ = renderer.parse_response(result.sequences[0].tokens)
     except Exception as exc:
         return Answer(row.id, row.app, correct=False, valid=False,
                       elapsed_ms=(time.perf_counter() - started) * 1000,
                       chose="call failed",
-                      reason=f"the request failed ({type(exc).__name__})")
+                      reason=f"the request failed ({type(exc).__name__}: {exc})")
     elapsed_ms = (time.perf_counter() - started) * 1000
 
     if isinstance(content, dict):  # some renderers return a message
@@ -671,6 +683,33 @@ def resolve_systems(spec: str, external: bool) -> list[tuple[str, str, str]]:
     return out
 
 
+def machine_info_safe() -> dict[str, str]:
+    """The machine fields for ``results.md``, degrading rather than failing.
+
+    ``scripts.bench_gemma.machine_info`` reports the Ollama client and server
+    versions and reads the RAM through a Windows call, which is right for the
+    rows it was written for and wrong for a tinker-only run: those are sampled
+    from a hosted model and can be produced from WSL, where there is no Ollama
+    and no ``GlobalMemoryStatusEx``. Falling back keeps the provenance honest --
+    the file still says which machine and which OS produced the numbers -- and
+    says plainly which fields are missing instead of inventing them.
+    """
+    try:
+        from scripts.bench_gemma import machine_info
+
+        return machine_info()
+    except Exception as exc:  # noqa: BLE001 -- provenance must not fail the run
+        import platform
+
+        return {
+            "os": f"{platform.system()} {platform.release()}",
+            "cores": str(os.cpu_count() or "?"),
+            "python": platform.python_version(),
+            "note": f"Ollama/host fields unavailable here ({type(exc).__name__}); "
+                    "this run scored hosted-model rows only",
+        }
+
+
 def run_system(name: str, kind: str, model: str, rows: Sequence[Row],
                client: Any) -> SystemResult:
     result = SystemResult(name=name, model=model)
@@ -702,6 +741,21 @@ def _rate(right: int, total: int) -> str:
     if total == 0:
         return "0/0 (-)"
     return f"{right}/{total} ({right / total * 100:.0f}%)"
+
+
+def display_path(path: Path) -> str:
+    """``path`` as the repo-relative name when it is inside the repo.
+
+    ``--out`` takes whatever the shell was given, which is usually a relative
+    path -- and ``Path.relative_to`` compares strings, so a relative path
+    against an absolute REPO_ROOT raises rather than returning the obvious
+    answer. Resolve first, and fall back to the full path for a file written
+    somewhere else entirely.
+    """
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 def write_results(results: Sequence[SystemResult], rows: Sequence[Row],
@@ -858,17 +912,24 @@ def main(argv: list[str] | None = None) -> int:
     systems = resolve_systems(args.systems, args.external)
     log.info("%d rows, %d systems", len(rows), len(systems))
 
-    import ollama
+    # Ollama is only needed by the local-model rows. The tinker rows answer from
+    # a hosted sampler, so a tinker-only run must not require a local Ollama --
+    # it is the one configuration that can be run off this laptop (the Tinker
+    # client needs PyTorch, which Windows Application Control blocks here, so
+    # these rows are produced from WSL where there is no Ollama at all).
+    needs_ollama = any(kind in ("pipeline", "vision_coords") for _, kind, _ in systems)
+    client = None
+    if needs_ollama:
+        import ollama
 
-    from scripts.bench_gemma import machine_info
+        client = ollama.Client(timeout=config.MODEL_TIMEOUT_S)
 
-    client = ollama.Client(timeout=config.MODEL_TIMEOUT_S)
     results = [run_system(name, kind, model, rows, client) for name, kind, model in systems]
 
     print_table(results)
     if not args.no_write:
-        path = write_results(results, rows, machine_info(), args.out)
-        print(f"wrote {path.relative_to(REPO_ROOT)}")
+        path = write_results(results, rows, machine_info_safe(), args.out)
+        print(f"wrote {display_path(path)}")
     return 0
 
 

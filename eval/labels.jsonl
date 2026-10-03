@@ -3,8 +3,9 @@
 // may be correct when they are the same click to her (a list row and its nav entry).
 // expect_cannot_see rows have no correct_ids: the right answer is "not on this screen".
 //
-// PARTIAL DATASET. Only File Explorer is labelled so far. See eval/results.md for what
-// that means for the numbers, and the collection note at the bottom of this file.
+// Two apps labelled: File Explorer and the demo booking site. That is enough to hold out
+// a whole application (train on one, test on the other), which is what the Tinker row
+// needs. settings, calculator and paint remain in collect.py and unlabelled.
 //
 // --- explorer_01: the Downloads folder, seven items, scene A step 3 ----------------
 {"id": "explorer_01_a", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "I cannot find the electricity bill", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [33]}
@@ -32,10 +33,42 @@
 {"id": "explorer_03_e", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "open my code editor", "history": [], "correct_ids": [72]}
 {"id": "explorer_03_f", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "make the screen brighter", "history": [], "correct_ids": [], "expect_cannot_see": true}
 
+// --- demo_site: scene B, the practice train-booking flow in a browser ---------------
+// Six pages of the booking flow, collected with `python eval\collect.py --group demo_site`
+// (Playwright, headed Chromium). All dummy content -- the site is demo_site/, nothing is
+// real -- so no forbidden-fragment risk. This is the held-out application for the Tinker
+// run: a browser form flow shares nothing with Explorer's file list, so a tuned picker
+// scoring here is scoring on a screen family it was not trained on.
+{"id": "demo_site_01_a", "screenshot": "demo_site_01.png", "elements": "demo_site_01.json", "app": "demo_site", "goal": "search for trains", "history": ["Open the booking site"], "correct_ids": [20]}
+{"id": "demo_site_01_b", "screenshot": "demo_site_01.png", "elements": "demo_site_01.json", "app": "demo_site", "goal": "type the station I'm leaving from", "history": ["Open the booking site"], "correct_ids": [16]}
+{"id": "demo_site_01_c", "screenshot": "demo_site_01.png", "elements": "demo_site_01.json", "app": "demo_site", "goal": "set where I want to go", "history": ["Open the booking site"], "correct_ids": [17]}
+{"id": "demo_site_01_d", "screenshot": "demo_site_01.png", "elements": "demo_site_01.json", "app": "demo_site", "goal": "pick my travel date", "history": ["Open the booking site"], "correct_ids": [19]}
+{"id": "demo_site_01_e", "screenshot": "demo_site_01.png", "elements": "demo_site_01.json", "app": "demo_site", "goal": "pay for my ticket", "history": ["Open the booking site"], "correct_ids": [], "expect_cannot_see": true}
+
+{"id": "demo_site_02_a", "screenshot": "demo_site_02.png", "elements": "demo_site_02.json", "app": "demo_site", "goal": "book the cheapest train", "history": ["Open the booking site", "Search for trains"], "correct_ids": [27]}
+{"id": "demo_site_02_b", "screenshot": "demo_site_02.png", "elements": "demo_site_02.json", "app": "demo_site", "goal": "I want the morning express", "history": ["Open the booking site", "Search for trains"], "correct_ids": [22]}
+{"id": "demo_site_02_c", "screenshot": "demo_site_02.png", "elements": "demo_site_02.json", "app": "demo_site", "goal": "choose the night train", "history": ["Open the booking site", "Search for trains"], "correct_ids": [32]}
+{"id": "demo_site_02_d", "screenshot": "demo_site_02.png", "elements": "demo_site_02.json", "app": "demo_site", "goal": "pick the train that leaves at 12:05", "history": ["Open the booking site", "Search for trains"], "correct_ids": [27]}
+{"id": "demo_site_02_e", "screenshot": "demo_site_02.png", "elements": "demo_site_02.json", "app": "demo_site", "goal": "enter my card details", "history": ["Open the booking site", "Search for trains"], "correct_ids": [], "expect_cannot_see": true}
+
+{"id": "demo_site_03_a", "screenshot": "demo_site_03.png", "elements": "demo_site_03.json", "app": "demo_site", "goal": "sign in to my account", "history": ["Open the booking site", "Search for trains", "Choose a train"], "correct_ids": [18]}
+{"id": "demo_site_03_b", "screenshot": "demo_site_03.png", "elements": "demo_site_03.json", "app": "demo_site", "goal": "type my username", "history": ["Open the booking site", "Search for trains", "Choose a train"], "correct_ids": [15]}
+{"id": "demo_site_03_c", "screenshot": "demo_site_03.png", "elements": "demo_site_03.json", "app": "demo_site", "goal": "enter my password", "history": ["Open the booking site", "Search for trains", "Choose a train"], "correct_ids": [17]}
+
+{"id": "demo_site_04_a", "screenshot": "demo_site_04.png", "elements": "demo_site_04.json", "app": "demo_site", "goal": "enter the code they texted me", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [16]}
+{"id": "demo_site_04_b", "screenshot": "demo_site_04.png", "elements": "demo_site_04.json", "app": "demo_site", "goal": "submit the one-time code", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [17]}
+
+{"id": "demo_site_05_a", "screenshot": "demo_site_05.png", "elements": "demo_site_05.json", "app": "demo_site", "goal": "pay for my ticket", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [25]}
+{"id": "demo_site_05_b", "screenshot": "demo_site_05.png", "elements": "demo_site_05.json", "app": "demo_site", "goal": "type my card number", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [20]}
+{"id": "demo_site_05_c", "screenshot": "demo_site_05.png", "elements": "demo_site_05.json", "app": "demo_site", "goal": "enter the name on the card", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [18]}
+{"id": "demo_site_05_d", "screenshot": "demo_site_05.png", "elements": "demo_site_05.json", "app": "demo_site", "goal": "put in the cvv", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [24]}
+{"id": "demo_site_05_e", "screenshot": "demo_site_05.png", "elements": "demo_site_05.json", "app": "demo_site", "goal": "enter the card expiry date", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in"], "correct_ids": [23]}
+
+{"id": "demo_site_06_a", "screenshot": "demo_site_06.png", "elements": "demo_site_06.json", "app": "demo_site", "goal": "book another ticket", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in", "Pay"], "correct_ids": [18]}
+{"id": "demo_site_06_b", "screenshot": "demo_site_06.png", "elements": "demo_site_06.json", "app": "demo_site", "goal": "download my ticket", "history": ["Open the booking site", "Search for trains", "Choose a train", "Sign in", "Pay"], "correct_ids": [], "expect_cannot_see": true}
+
 // --- collection note ----------------------------------------------------------------
-// These three screens were collected with eval/collect.py on the developer's laptop,
-// against a throwaway folder of dummy files in the system temp directory. The other
-// four apps in collect.py (settings, calculator, paint, demo_site) are not labelled
-// here because their screens could not be collected cleanly: the collector needs the
-// desktop to itself, and the machine was in use. Re-run `python eval\collect.py
-// --group all` on a quiet machine, then label the new screens in the same format.
+// explorer_* collected on the developer's laptop against a throwaway folder of dummy
+// files in the system temp directory; demo_site_* collected via Playwright against the
+// local demo_site/ server. settings, calculator and paint are in collect.py but not yet
+// labelled -- re-run `python eval\collect.py --group all` on a quiet machine to add them.

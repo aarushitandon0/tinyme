@@ -1,0 +1,434 @@
+{
+ "format_version": 1,
+ "shot": "demo_site_01.png",
+ "app": "demo_site",
+ "captured_at": "2026-10-03T16:36:34+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "Chrome_WidgetWin_1",
+  "title": "Demo Rail - Find trains – Google Chrome for Testing"
+ },
+ "timings_ms": {
+  "capture_ms": 235.7,
+  "read_ms": 21941.6
+ },
+ "counts": {
+  "merged": 31,
+  "kept": 31
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "Demo Rail - Find trains",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    106.0,
+    25.0,
+    267.0,
+    50.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "x",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    332.0,
+    28.0,
+    351.0,
+    47.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "+",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    378.0,
+    29.0,
+    397.0,
+    48.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "□",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1221.0,
+    29.0,
+    1240.0,
+    48.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1277.0,
+    26.0,
+    1299.0,
+    50.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "←",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    41.0,
+    82.0,
+    60.0,
+    100.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "localhost:8000/demo_site/index.html",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    215.0,
+    79.0,
+    505.0,
+    104.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "☆",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1211.0,
+    78.0,
+    1239.0,
+    106.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Demo Rail",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    50.0,
+    146.0,
+    183.0,
+    176.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "practice booking site",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    194.0,
+    153.0,
+    375.0,
+    179.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Find trains",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    398.0,
+    268.0,
+    571.0,
+    308.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "Pick where you are going and when.",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    398.0,
+    322.0,
+    745.0,
+    352.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "Step 1 of 4 ·Search · Choose a train ·Sign in · Pay",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    399.0,
+    379.0,
+    816.0,
+    405.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "From",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    398.0,
+    451.0,
+    458.0,
+    478.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "To",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    829.0,
+    453.0,
+    858.0,
+    477.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "Station you are leaving from",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    416.0,
+    500.0,
+    687.0,
+    527.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "Station you are going to",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    843.0,
+    499.0,
+    1076.0,
+    528.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "Date of travel",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    400.0,
+    565.0,
+    537.0,
+    592.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "dd-mm-yyyy",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    413.0,
+    615.0,
+    547.0,
+    647.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "Search trains",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    426.0,
+    699.0,
+    570.0,
+    726.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "Demo site. Not a real railway. Nothing is booked, nothing is charged, and no details are sent anywhere.",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    368.0,
+    809.0,
+    1231.0,
+    835.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    17.0,
+    1026.0,
+    66.0,
+    1075.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "28℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    101.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "Clear",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    60.0,
+    1048.0,
+    103.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "田",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    499.0,
+    1032.0,
+    535.0,
+    1068.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    582.0,
+    1034.0,
+    651.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1028.0,
+    1685.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "小",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1734.0,
+    1039.0,
+    1757.0,
+    1059.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1814.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "10:06 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1830.0,
+    1028.0,
+    1900.0,
+    1049.0
+   ]
+  }
+ ]
+}

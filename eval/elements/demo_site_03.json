@@ -1,0 +1,564 @@
+{
+ "format_version": 1,
+ "shot": "demo_site_03.png",
+ "app": "demo_site",
+ "captured_at": "2026-10-03T16:37:08+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "Chrome_WidgetWin_1",
+  "title": "Demo Rail - Sign in – Google Chrome for Testing"
+ },
+ "timings_ms": {
+  "capture_ms": 102.4,
+  "read_ms": 13927.8
+ },
+ "counts": {
+  "merged": 41,
+  "kept": 41
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "Demo Rail - Sign in",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    107.0,
+    27.0,
+    243.0,
+    50.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "x",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    331.0,
+    27.0,
+    353.0,
+    48.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "+",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    378.0,
+    29.0,
+    397.0,
+    48.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Minimise",
+   "source": "uia",
+   "role": "Button",
+   "region": "top-center",
+   "bbox_px": [
+    1146.0,
+    14.0,
+    1203.0,
+    64.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "□",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1221.0,
+    29.0,
+    1240.0,
+    48.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1277.0,
+    26.0,
+    1299.0,
+    50.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "←",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    41.0,
+    82.0,
+    60.0,
+    100.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "localhost:8000/demo_site/login.html",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    215.0,
+    79.0,
+    504.0,
+    105.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Demo Rail",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    48.0,
+    144.0,
+    185.0,
+    179.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "practice booking site",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    194.0,
+    153.0,
+    375.0,
+    179.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Sign in",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    396.0,
+    267.0,
+    515.0,
+    316.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "Sign in to hold your seat.",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    400.0,
+    325.0,
+    641.0,
+    351.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "Search · Choose a train · Step 3 of 4 · Sign in · Pay",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    397.0,
+    377.0,
+    816.0,
+    406.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "Username",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    399.0,
+    432.0,
+    505.0,
+    459.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "Your username",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    415.0,
+    479.0,
+    567.0,
+    508.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "Password",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    399.0,
+    545.0,
+    497.0,
+    572.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "Your password",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    415.0,
+    593.0,
+    564.0,
+    622.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "Sign in",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    423.0,
+    671.0,
+    509.0,
+    709.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "This is a practice page. Type anything you like as the password - it is not checked and not stored.",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    417.0,
+    757.0,
+    1223.0,
+    786.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "Demo site. Not a real railway. Nothing is booked, nothing is charged, and no details are sent anywhere.",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    367.0,
+    886.0,
+    1231.0,
+    913.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    17.0,
+    1026.0,
+    66.0,
+    1075.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "28℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    101.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "Clear",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    60.0,
+    1048.0,
+    103.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "Widgets 28°C Clear",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    8.0,
+    1020.0,
+    198.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "田",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    499.0,
+    1032.0,
+    536.0,
+    1068.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "Start",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    490.0,
+    1020.0,
+    546.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    583.0,
+    1036.0,
+    651.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "Search",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    548.0,
+    1030.0,
+    823.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "Task View",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    826.0,
+    1020.0,
+    881.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "Copilot",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    881.0,
+    1020.0,
+    936.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "File Explorer",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    936.0,
+    1020.0,
+    991.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 32,
+   "text": "Microsoft Edge",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    991.0,
+    1020.0,
+    1046.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 33,
+   "text": "Microsoft Store",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1046.0,
+    1020.0,
+    1101.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 34,
+   "text": "Visual Studio Code",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1101.0,
+    1020.0,
+    1156.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 35,
+   "text": "Google Chrome",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1156.0,
+    1020.0,
+    1211.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 36,
+   "text": "W",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    1225.0,
+    1050.0,
+    1234.0,
+    1060.0
+   ]
+  },
+  {
+   "id": 37,
+   "text": "Word",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1211.0,
+    1020.0,
+    1266.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 38,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1027.0,
+    1685.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 39,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 40,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1814.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 41,
+   "text": "10:06 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1829.0,
+    1027.0,
+    1901.0,
+    1051.0
+   ]
+  }
+ ]
+}

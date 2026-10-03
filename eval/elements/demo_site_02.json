@@ -1,0 +1,720 @@
+{
+ "format_version": 1,
+ "shot": "demo_site_02.png",
+ "app": "demo_site",
+ "captured_at": "2026-10-03T16:36:52+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "Chrome_WidgetWin_1",
+  "title": "Demo Rail - Trains – Google Chrome for Testing"
+ },
+ "timings_ms": {
+  "capture_ms": 103.6,
+  "read_ms": 15558.0
+ },
+ "counts": {
+  "merged": 53,
+  "kept": 53
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "Demo Rail - Trains",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    107.0,
+    26.0,
+    237.0,
+    49.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "x",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    331.0,
+    27.0,
+    353.0,
+    48.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "+",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    377.0,
+    28.0,
+    399.0,
+    49.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "□",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1221.0,
+    29.0,
+    1240.0,
+    48.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1277.0,
+    26.0,
+    1299.0,
+    50.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "←",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    40.0,
+    82.0,
+    60.0,
+    100.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "localhost:8000/demo_site/results.html",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    216.0,
+    79.0,
+    513.0,
+    102.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "☆",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1210.0,
+    76.0,
+    1241.0,
+    107.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Demo Rail",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    50.0,
+    145.0,
+    183.0,
+    176.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "practice booking site",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    194.0,
+    153.0,
+    375.0,
+    179.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Trains",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    398.0,
+    270.0,
+    500.0,
+    308.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "Choose a train.",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    400.0,
+    324.0,
+    546.0,
+    350.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "Search · Step 2 of 4 · Choose a train · Sign in · Pay",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    397.0,
+    377.0,
+    816.0,
+    405.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "TRAIN",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    411.0,
+    445.0,
+    480.0,
+    470.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "LEAVES",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    672.0,
+    444.0,
+    752.0,
+    471.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "ARRIVES",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    800.0,
+    446.0,
+    890.0,
+    470.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "FARE",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    943.0,
+    445.0,
+    1000.0,
+    470.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "Morning Express",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    410.0,
+    533.0,
+    578.0,
+    566.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "06:40",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    672.0,
+    533.0,
+    733.0,
+    562.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "10:15",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    800.0,
+    532.0,
+    860.0,
+    563.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "₹540",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    941.0,
+    533.0,
+    1005.0,
+    561.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "Choose",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    1074.0,
+    548.0,
+    1156.0,
+    576.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "Midday Passenger",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    410.0,
+    652.0,
+    591.0,
+    685.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "12:05",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    674.0,
+    653.0,
+    733.0,
+    681.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "16:40",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    800.0,
+    653.0,
+    860.0,
+    682.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "₹390",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    942.0,
+    653.0,
+    1004.0,
+    681.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "Choose",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    1072.0,
+    665.0,
+    1157.0,
+    698.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "Night Mail",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    410.0,
+    773.0,
+    520.0,
+    804.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "22:30",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    672.0,
+    774.0,
+    733.0,
+    802.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "05:55",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    798.0,
+    774.0,
+    860.0,
+    802.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "₹610",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    942.0,
+    774.0,
+    1005.0,
+    802.0
+   ]
+  },
+  {
+   "id": 32,
+   "text": "Choose",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    1073.0,
+    786.0,
+    1156.0,
+    816.0
+   ]
+  },
+  {
+   "id": 33,
+   "text": "Demo site. Not a real railway. Nothing is booked, nothing is charged, and no details are sent anywhere.",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    369.0,
+    917.0,
+    1229.0,
+    940.0
+   ]
+  },
+  {
+   "id": 34,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    17.0,
+    1026.0,
+    66.0,
+    1075.0
+   ]
+  },
+  {
+   "id": 35,
+   "text": "28℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    101.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 36,
+   "text": "Clear",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    60.0,
+    1048.0,
+    104.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 37,
+   "text": "Widgets 28°C Clear",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    8.0,
+    1020.0,
+    198.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 38,
+   "text": "田",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    499.0,
+    1033.0,
+    535.0,
+    1068.0
+   ]
+  },
+  {
+   "id": 39,
+   "text": "Start",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    490.0,
+    1020.0,
+    546.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 40,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    584.0,
+    1034.0,
+    651.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 41,
+   "text": "Search",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    548.0,
+    1030.0,
+    823.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 42,
+   "text": "Task View",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    826.0,
+    1020.0,
+    881.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 43,
+   "text": "Copilot",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    881.0,
+    1020.0,
+    936.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 44,
+   "text": "0",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    892.0,
+    1037.0,
+    926.0,
+    1065.0
+   ]
+  },
+  {
+   "id": 45,
+   "text": "File Explorer",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    936.0,
+    1020.0,
+    991.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 46,
+   "text": "Microsoft Edge",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    991.0,
+    1020.0,
+    1046.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 47,
+   "text": "Microsoft Store",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1046.0,
+    1020.0,
+    1101.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 48,
+   "text": "W",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    1225.0,
+    1050.0,
+    1234.0,
+    1060.0
+   ]
+  },
+  {
+   "id": 49,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 50,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1027.0,
+    1686.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 51,
+   "text": "小",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1734.0,
+    1039.0,
+    1757.0,
+    1059.0
+   ]
+  },
+  {
+   "id": 52,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1814.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 53,
+   "text": "10:06 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1829.0,
+    1027.0,
+    1901.0,
+    1051.0
+   ]
+  }
+ ]
+}

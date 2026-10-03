@@ -13,6 +13,8 @@ a fixed JSON string is enough to drive the whole pipeline path.
 from __future__ import annotations
 
 import json
+import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -428,3 +430,107 @@ def test_write_results_says_so_when_there_are_no_failures(tmp_path):
     out = tmp_path / "results.md"
     run_eval.write_results([result], rows, {}, out)
     assert "No failures." in out.read_text(encoding="utf-8")
+
+
+# --- the tinker systems (P13) ----------------------------------------------
+#
+# Tinker is not installed on the machine that runs these tests -- it needs
+# PyTorch, which Application Control blocks here, so the real rows are produced
+# from WSL. What is stubbed is therefore the whole SDK surface ``run_tinker``
+# touches, and what is tested is the shape of that contract: in particular that
+# ``SamplingClient.sample`` returns a *future*, not a response. Getting that
+# wrong fails instantly on every row, which looks exactly like a model that
+# cannot answer.
+
+
+class StubFuture:
+    """What ``tinker.SamplingClient.sample`` actually returns."""
+
+    def __init__(self, value: object) -> None:
+        self._value = value
+
+    def result(self):
+        return self._value
+
+
+class StubSamplingClient:
+    def __init__(self, reply: str, raises: Exception | None = None) -> None:
+        self.reply = reply
+        self.raises = raises
+        self.calls: list[dict] = []
+
+    def sample(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.raises is not None:
+            raise self.raises
+
+        class Sequence:
+            tokens = [1, 2, 3]
+
+        class Response:
+            sequences = [Sequence()]
+
+        return StubFuture(Response())
+
+
+class StubRenderer:
+    def __init__(self, reply: str) -> None:
+        self.reply = reply
+
+    def build_generation_prompt(self, messages):
+        self.messages = messages
+        return messages
+
+    def parse_response(self, tokens):
+        return {"role": "assistant", "content": self.reply}, None
+
+
+@pytest.fixture
+def fake_tinker(monkeypatch):
+    """Put a stub ``tinker`` module in place and hand back a sampler factory."""
+    module = types.ModuleType("tinker")
+    module.SamplingParams = lambda **kwargs: kwargs
+    monkeypatch.setitem(sys.modules, "tinker", module)
+
+    def install(reply: str = "", raises: Exception | None = None) -> StubSamplingClient:
+        client = StubSamplingClient(reply, raises)
+        monkeypatch.setattr(run_eval, "tinker_sampler",
+                            lambda checkpoint: (client, StubRenderer(reply)))
+        return client
+
+    return install
+
+
+def test_tinker_waits_for_the_sampling_future(tmp_path, fake_tinker):
+    row = one_row(tmp_path)
+    fake_tinker(plan_json(1))
+
+    answer = run_eval.run_tinker(row, "")
+
+    assert answer.valid is True
+    assert answer.correct is True
+    assert "Downloads" in answer.chose
+
+
+def test_tinker_reason_names_why_the_call_failed(tmp_path, fake_tinker):
+    row = one_row(tmp_path)
+    fake_tinker(raises=RuntimeError("sampler is busy"))
+
+    answer = run_eval.run_tinker(row, "")
+
+    assert answer.valid is False
+    assert answer.chose == "call failed"
+    assert "sampler is busy" in answer.reason
+
+
+# --- the path printed at the end -------------------------------------------
+
+
+def test_display_path_is_relative_for_a_path_inside_the_repo():
+    assert run_eval.display_path(Path("eval/results_tinker.md")) == str(
+        Path("eval/results_tinker.md"))
+
+
+def test_display_path_falls_back_to_the_full_path_outside_the_repo(tmp_path):
+    outside = tmp_path / "results.md"
+    assert run_eval.display_path(outside) == str(outside)
