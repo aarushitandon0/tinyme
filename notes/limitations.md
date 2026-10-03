@@ -84,3 +84,52 @@ for an unrelated one, so no threshold separates them.
   at the password, the OTP and the card in turn.
 * Gemma: still not measured. See `notes/bench.md` -- Ollama is not installed on
   this machine.
+
+---
+
+## The evaluation (P10)
+
+**The dataset covers one app, not five.** `eval/collect.py` can arrange screens
+for File Explorer, Settings, Calculator, Paint and the demo booking site, and
+`eval/labels.jsonl` currently labels **three File Explorer screens, 20 rows**.
+The other four apps are collected by the same script and are not in the data yet.
+Every number in `eval/results.md` is therefore a number about File Explorer. The
+per-app table exists precisely so this cannot be hidden by an average.
+
+**Why the collection stopped where it did.** The collector needs the desktop to
+itself: it launches an app, waits for that window to reach the foreground, and
+discards the shot if the capture caught anything else. On a machine being used at
+the same time, focus is taken back between the check and the grab, and the shot is
+thrown away. Four of the five apps were lost to this, not to anything about the
+approach. Re-run `python eval\collect.py --group all` on a quiet machine.
+
+**Labels were written from the element lists and the screenshots by the agent that
+built the harness, not by a second person.** A label is a judgement about what she
+would want clicked, and nobody has checked these against a second opinion. Rows
+where two targets are defensible list both ids rather than picking one.
+
+**Three screens were discarded for leaking, and the mechanism is now automatic.**
+The first collection runs captured another window floating above a full-screen app,
+and a text editor showing the names of personal documents. `eval/elements/*.json`
+is committed and contains every word on the screen, so that is a text leak into
+the repo even though `eval/screenshots/*.png` is gitignored. `eval/forbidden.txt`
+(gitignored, developer-local) now lists fragments that must never appear in a kept
+shot, and a capture containing one is deleted rather than saved.
+
+**The coordinate baseline has not been measured.** `vision_coords_<tag>` is
+implemented and tested, but one call with a 1920x1080 screenshot did not return
+within 180 s on this CPU while the machine was also running OCR. Until it has been
+run on a quiet machine there is no vision-baseline number, and none may be quoted.
+
+**An element cap that can hide a file she is looking for.** In one capture,
+`cap_elements` kept 80 of 106 elements and "water bill august" -- a file plainly
+visible in the folder -- was not among them, because the taskbar is ranked above
+the foreground window and contributed around twenty buttons. The same screen
+captured again after the desktop was cleared did include it. So this is real but
+not yet reproducible on demand; it is written down here rather than fixed, because
+a fix aimed at an unreproduced failure is a guess.
+
+**Live numbers do not exist.** Task completion rate and recovery rate need the app
+running against a changing screen with a person in front of it. `eval/live_runs.md`
+is the log for those and is empty. No completion or recovery figure may appear in
+the post until it has rows.

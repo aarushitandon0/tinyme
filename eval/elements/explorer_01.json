@@ -1,0 +1,1071 @@
+{
+ "format_version": 1,
+ "shot": "explorer_01.png",
+ "app": "explorer",
+ "captured_at": "2026-10-03T10:20:36+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "CabinetWClass",
+  "title": "Downloads - File Explorer"
+ },
+ "timings_ms": {
+  "capture_ms": 140.5,
+  "read_ms": 17237.9
+ },
+ "counts": {
+  "merged": 90,
+  "kept": 80
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    51.0,
+    14.0,
+    133.0,
+    31.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "×",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    276.0,
+    13.0,
+    295.0,
+    31.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "+",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    331.0,
+    14.0,
+    349.0,
+    33.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "口",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1819.0,
+    9.0,
+    1838.0,
+    27.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1879.0,
+    8.0,
+    1898.0,
+    27.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "→",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    84.0,
+    64.0,
+    103.0,
+    81.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "个",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    143.0,
+    62.0,
+    164.0,
+    83.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    205.0,
+    63.0,
+    224.0,
+    81.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Local Disk (C:)",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    379.0,
+    60.0,
+    495.0,
+    83.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "Users",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    536.0,
+    58.0,
+    592.0,
+    83.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Aarushi > AppData",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    629.0,
+    59.0,
+    823.0,
+    84.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "Local >",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    856.0,
+    60.0,
+    953.0,
+    83.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "Temp > tinyme_eval_home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    946.0,
+    60.0,
+    1213.0,
+    85.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1235.0,
+    60.0,
+    1333.0,
+    82.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "Search Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1442.0,
+    61.0,
+    1593.0,
+    83.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "Q",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1871.0,
+    63.0,
+    1889.0,
+    80.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "New",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    48.0,
+    122.0,
+    103.0,
+    144.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "△",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    320.0,
+    120.0,
+    347.0,
+    145.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "So",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    527.0,
+    121.0,
+    587.0,
+    145.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "≡ View",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    611.0,
+    122.0,
+    685.0,
+    143.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "Details",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1839.0,
+    121.0,
+    1897.0,
+    145.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "Home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    62.0,
+    180.0,
+    114.0,
+    201.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "Name",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    231.0,
+    164.0,
+    282.0,
+    189.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "Date modified",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    542.0,
+    166.0,
+    647.0,
+    189.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "Type",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    723.0,
+    168.0,
+    763.0,
+    190.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "Size",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    872.0,
+    165.0,
+    908.0,
+    188.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "Gallery",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    60.0,
+    215.0,
+    119.0,
+    244.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "old stuff",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    221.0,
+    206.0,
+    307.0,
+    227.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    541.0,
+    204.0,
+    691.0,
+    229.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "File folder",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    722.0,
+    206.0,
+    797.0,
+    227.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "x",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    28.0,
+    266.0,
+    46.0,
+    283.0
+   ]
+  },
+  {
+   "id": 32,
+   "text": "Aarushi - Person",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    61.0,
+    261.0,
+    177.0,
+    278.0
+   ]
+  },
+  {
+   "id": 33,
+   "text": "electricity bill september",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    219.0,
+    241.0,
+    415.0,
+    268.0
+   ]
+  },
+  {
+   "id": 34,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    543.0,
+    244.0,
+    690.0,
+    264.0
+   ]
+  },
+  {
+   "id": 35,
+   "text": "Microsoft Edge PD...",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    721.0,
+    241.0,
+    864.0,
+    266.0
+   ]
+  },
+  {
+   "id": 36,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    928.0,
+    245.0,
+    963.0,
+    264.0
+   ]
+  },
+  {
+   "id": 37,
+   "text": "family photo diwali",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    245.0,
+    282.0,
+    380.0,
+    302.0
+   ]
+  },
+  {
+   "id": 38,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    544.0,
+    283.0,
+    689.0,
+    300.0
+   ]
+  },
+  {
+   "id": 39,
+   "text": "JPG File",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    722.0,
+    279.0,
+    782.0,
+    303.0
+   ]
+  },
+  {
+   "id": 40,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    926.0,
+    281.0,
+    964.0,
+    303.0
+   ]
+  },
+  {
+   "id": 41,
+   "text": "Desktop",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    42.0,
+    336.0,
+    127.0,
+    362.0
+   ]
+  },
+  {
+   "id": 42,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    155.0,
+    339.0,
+    172.0,
+    358.0
+   ]
+  },
+  {
+   "id": 43,
+   "text": "insurance renewal form",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    244.0,
+    318.0,
+    405.0,
+    338.0
+   ]
+  },
+  {
+   "id": 44,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    543.0,
+    318.0,
+    690.0,
+    338.0
+   ]
+  },
+  {
+   "id": 45,
+   "text": "Microsoft Edge PD...",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    722.0,
+    316.0,
+    864.0,
+    342.0
+   ]
+  },
+  {
+   "id": 46,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    926.0,
+    318.0,
+    964.0,
+    339.0
+   ]
+  },
+  {
+   "id": 47,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    63.0,
+    378.0,
+    147.0,
+    399.0
+   ]
+  },
+  {
+   "id": 48,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    153.0,
+    380.0,
+    172.0,
+    397.0
+   ]
+  },
+  {
+   "id": 49,
+   "text": "recipe notes",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    244.0,
+    355.0,
+    333.0,
+    376.0
+   ]
+  },
+  {
+   "id": 50,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    543.0,
+    355.0,
+    690.0,
+    375.0
+   ]
+  },
+  {
+   "id": 51,
+   "text": "Text Document",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    723.0,
+    354.0,
+    832.0,
+    377.0
+   ]
+  },
+  {
+   "id": 52,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    926.0,
+    354.0,
+    964.0,
+    376.0
+   ]
+  },
+  {
+   "id": 53,
+   "text": "PF",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    223.0,
+    392.0,
+    243.0,
+    410.0
+   ]
+  },
+  {
+   "id": 54,
+   "text": "train ticket october",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    243.0,
+    393.0,
+    377.0,
+    413.0
+   ]
+  },
+  {
+   "id": 55,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    543.0,
+    392.0,
+    690.0,
+    412.0
+   ]
+  },
+  {
+   "id": 56,
+   "text": "Microsoft Edge PD...",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    723.0,
+    391.0,
+    862.0,
+    414.0
+   ]
+  },
+  {
+   "id": 57,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    927.0,
+    393.0,
+    963.0,
+    412.0
+   ]
+  },
+  {
+   "id": 58,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    63.0,
+    418.0,
+    147.0,
+    441.0
+   ]
+  },
+  {
+   "id": 59,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    154.0,
+    420.0,
+    172.0,
+    437.0
+   ]
+  },
+  {
+   "id": 60,
+   "text": "water bill august",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    243.0,
+    430.0,
+    361.0,
+    450.0
+   ]
+  },
+  {
+   "id": 61,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    543.0,
+    429.0,
+    690.0,
+    449.0
+   ]
+  },
+  {
+   "id": 62,
+   "text": "Microsoft Edge PD...",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    724.0,
+    430.0,
+    862.0,
+    450.0
+   ]
+  },
+  {
+   "id": 63,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "center",
+   "bbox_px": [
+    926.0,
+    429.0,
+    964.0,
+    451.0
+   ]
+  },
+  {
+   "id": 64,
+   "text": "Pictures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    61.0,
+    458.0,
+    124.0,
+    481.0
+   ]
+  },
+  {
+   "id": 65,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    154.0,
+    460.0,
+    172.0,
+    478.0
+   ]
+  },
+  {
+   "id": 66,
+   "text": "Music",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    58.0,
+    498.0,
+    111.0,
+    520.0
+   ]
+  },
+  {
+   "id": 67,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    155.0,
+    500.0,
+    172.0,
+    518.0
+   ]
+  },
+  {
+   "id": 68,
+   "text": "Videos",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    64.0,
+    539.0,
+    117.0,
+    560.0
+   ]
+  },
+  {
+   "id": 69,
+   "text": "Captures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    60.0,
+    581.0,
+    130.0,
+    601.0
+   ]
+  },
+  {
+   "id": 70,
+   "text": "Navigation Pane",
+   "source": "uia",
+   "role": "Tree",
+   "region": "left-middle",
+   "bbox_px": [
+    3.0,
+    161.0,
+    195.0,
+    989.0
+   ]
+  },
+  {
+   "id": 71,
+   "text": "Items View",
+   "source": "uia",
+   "role": "List",
+   "region": "center",
+   "bbox_px": [
+    200.0,
+    161.0,
+    1920.0,
+    989.0
+   ]
+  },
+  {
+   "id": 72,
+   "text": "33℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    100.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 73,
+   "text": "Sunny",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    57.0,
+    1046.0,
+    111.0,
+    1073.0
+   ]
+  },
+  {
+   "id": 74,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    642.0,
+    1036.0,
+    706.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 75,
+   "text": "首",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1281.0,
+    1033.0,
+    1307.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 76,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1027.0,
+    1685.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 77,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 78,
+   "text": "小",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1733.0,
+    1039.0,
+    1757.0,
+    1059.0
+   ]
+  },
+  {
+   "id": 79,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1814.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 80,
+   "text": "03:50 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1829.0,
+    1028.0,
+    1900.0,
+    1049.0
+   ]
+  }
+ ]
+}

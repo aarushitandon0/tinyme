@@ -60,3 +60,147 @@ def test_generic_probe_text_is_not_used_as_the_default():
     # matching above safe.
     assert "XQZ7" in EXCLUSION_PROBE
     assert "CHECK" not in EXCLUSION_PROBE.upper().replace("XQZ7", "")
+
+
+# --- choosing the mark -----------------------------------------------------
+# ``choose_shape`` decides between a circle and a rectangle from the target's
+# proportions alone. It is pure and takes physical pixels plus the scale
+# factor, so it is testable without a screen -- which matters, because getting
+# it wrong at 125% scaling is exactly the class of bug MASTERSPEC 14 warns
+# about.
+
+from app.overlay import MarkShape, choose_shape
+
+
+def box(width, height, dpr=1.0):
+    """A bbox of the given LOGICAL size, expressed in physical pixels."""
+    return (100 * dpr, 100 * dpr, (100 + width) * dpr, (100 + height) * dpr)
+
+
+class TestChooseShape:
+    def test_a_list_row_gets_a_frame(self):
+        # An Explorer sidebar row: wide, short, and genuinely a rectangle.
+        assert choose_shape(box(220, 24), 1.0) is MarkShape.FRAME
+
+    def test_a_word_gets_a_ring(self):
+        # A word in running text: too small to frame without looking fussy.
+        assert choose_shape(box(48, 18), 1.0) is MarkShape.RING
+
+    def test_a_square_icon_gets_a_ring(self):
+        # A taskbar icon is a square: a frame on it is indistinguishable from
+        # the icon's own hover highlight, so the ring stays.
+        assert choose_shape(box(40, 40), 1.0) is MarkShape.RING
+
+    def test_a_wide_button_gets_a_frame(self):
+        assert choose_shape(box(160, 40), 1.0) is MarkShape.FRAME
+
+    def test_a_thin_sliver_gets_a_ring(self):
+        # Wide but only a few pixels tall: OCR noise, not a row.
+        assert choose_shape(box(300, 6), 1.0) is MarkShape.RING
+
+    def test_the_decision_is_made_in_logical_pixels(self):
+        # The same on-screen row at 150% scaling arrives 1.5x bigger in
+        # physical pixels. It is the same row and must get the same mark.
+        at_100 = choose_shape(box(220, 24, dpr=1.0), 1.0)
+        at_150 = choose_shape(box(220, 24, dpr=1.5), 1.5)
+        assert at_100 is at_150 is MarkShape.FRAME
+
+    def test_a_row_too_small_at_high_scaling_is_still_judged_by_its_real_size(self):
+        # 40x10 logical is below the frame floor whatever the scale factor.
+        assert choose_shape(box(40, 10, dpr=1.5), 1.5) is MarkShape.RING
+
+    def test_a_degenerate_bbox_does_not_raise(self):
+        assert choose_shape((10, 10, 10, 10), 1.0) is MarkShape.RING
+
+    def test_a_backwards_bbox_does_not_raise(self):
+        assert choose_shape((200, 200, 100, 100), 1.0) in (
+            MarkShape.RING, MarkShape.FRAME
+        )
+
+
+# --- the callout's tail ----------------------------------------------------
+# ``_tail_reaches`` is a staticmethod over plain geometry, so it tests without
+# a display even though it lives on the widget. It guards a real failure mode:
+# near a screen edge the callout is clamped sideways, and a tail pinned to its
+# own corner points at empty screen -- worse than no tail, because it points
+# somewhere wrong. False here means "draw a leader line instead".
+
+from PySide6.QtCore import QPointF, QRectF
+
+from app.overlay import Overlay
+
+reaches = Overlay._tail_reaches
+
+
+class TestTailReaches:
+    card = QRectF(100, 200, 240, 44)
+
+    def test_a_mark_under_the_middle_of_the_card_reaches(self):
+        assert reaches(self.card, QPointF(220, 180)) is True
+
+    def test_a_mark_well_off_to_the_left_does_not_reach(self):
+        assert reaches(self.card, QPointF(40, 180)) is False
+
+    def test_a_mark_well_off_to_the_right_does_not_reach(self):
+        assert reaches(self.card, QPointF(500, 180)) is False
+
+    def test_a_mark_just_inside_the_flat_edge_reaches(self):
+        # The tail may not grow out of a rounded corner, so the usable span is
+        # the card minus its radius and the tail's own half-width at each end.
+        assert reaches(self.card, QPointF(125, 180)) is True
+
+    def test_a_very_narrow_card_has_no_flat_edge_to_hang_a_tail_from(self):
+        sliver = QRectF(100, 200, 12, 44)
+        assert reaches(sliver, QPointF(106, 180)) is False
+
+    def test_a_card_pushed_far_from_the_mark_cannot_bridge_the_gap(self):
+        # The mark runs off the bottom of the screen, so the card was clamped
+        # back inside it and now sits a long way above where it should. A 7 px
+        # tail does not reach across that.
+        assert reaches(self.card, QPointF(220, 60)) is False
+
+    def test_the_usual_gap_is_fine(self):
+        # Normal placement: the card sits LABEL_GAP below the mark.
+        assert reaches(self.card, QPointF(220, 200 - 16), below=True) is True
+
+    def test_the_gap_is_measured_from_the_edge_that_faces_the_mark(self):
+        # Flipped above the mark, the card's BOTTOM faces it; measuring from
+        # the top would call this a huge gap and suppress a good tail.
+        below_card = QRectF(100, 100, 240, 44)
+        assert reaches(below_card, QPointF(220, 160), below=False) is True
+        assert reaches(below_card, QPointF(220, 160), below=True) is False
+
+
+# --- the step counter getting out of the way -------------------------------
+# The counter sits bottom-centre, which is exactly where the callout for a
+# target low on the screen lands. ``_lift_clear`` is the pure geometry that
+# moves it; it is a staticmethod, so no display is needed.
+
+lift = Overlay._lift_clear
+
+
+class TestLiftClear:
+    counter = QRectF(600, 760, 160, 34)
+
+    def test_nothing_in_the_way_leaves_it_alone(self):
+        assert lift(self.counter, []) == self.counter
+
+    def test_something_far_away_leaves_it_alone(self):
+        assert lift(self.counter, [QRectF(0, 0, 100, 100)]) == self.counter
+
+    def test_it_climbs_above_an_overlapping_callout(self):
+        callout = QRectF(560, 740, 300, 44)
+        moved = lift(self.counter, [callout])
+        assert moved.bottom() <= callout.top()
+        assert moved.left() == self.counter.left()      # straight up, never sideways
+        assert moved.width() == self.counter.width()
+
+    def test_it_climbs_past_a_stack_of_things(self):
+        boxes = [QRectF(560, 740, 300, 44), QRectF(560, 680, 300, 44)]
+        moved = lift(self.counter, boxes)
+        assert all(not b.intersects(moved) for b in boxes)
+
+    def test_a_full_screen_leaves_it_where_it_started(self):
+        # Nothing to climb to: better half-covered than off the top edge.
+        wall = QRectF(0, 0, 1920, 1080)
+        assert lift(self.counter, [wall]) == self.counter

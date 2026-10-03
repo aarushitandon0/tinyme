@@ -1,0 +1,1045 @@
+{
+ "format_version": 1,
+ "shot": "explorer_02.png",
+ "app": "explorer",
+ "captured_at": "2026-10-03T10:21:44+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "CabinetWClass",
+  "title": "Documents - File Explorer"
+ },
+ "timings_ms": {
+  "capture_ms": 96.6,
+  "read_ms": 11084.2
+ },
+ "counts": {
+  "merged": 78,
+  "kept": 78
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    57.0,
+    20.0,
+    145.0,
+    42.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "×",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    283.0,
+    20.0,
+    305.0,
+    41.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "□",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1811.0,
+    9.0,
+    1833.0,
+    30.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1869.0,
+    7.0,
+    1892.0,
+    30.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "↑",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    153.0,
+    70.0,
+    174.0,
+    92.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    213.0,
+    69.0,
+    234.0,
+    91.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    319.0,
+    73.0,
+    331.0,
+    88.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "…",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    352.0,
+    74.0,
+    371.0,
+    85.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Local Disk (C:)",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    388.0,
+    68.0,
+    503.0,
+    92.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "Users",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    545.0,
+    68.0,
+    599.0,
+    92.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Aarushi",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    640.0,
+    68.0,
+    709.0,
+    92.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    719.0,
+    73.0,
+    734.0,
+    87.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "AppData",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    747.0,
+    68.0,
+    828.0,
+    94.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    839.0,
+    73.0,
+    853.0,
+    88.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "Local",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    869.0,
+    69.0,
+    918.0,
+    91.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    930.0,
+    73.0,
+    944.0,
+    88.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "Temp",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    960.0,
+    68.0,
+    1011.0,
+    93.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "tinyme_eval_home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1052.0,
+    69.0,
+    1204.0,
+    92.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    1218.0,
+    73.0,
+    1231.0,
+    88.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1245.0,
+    68.0,
+    1343.0,
+    91.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "Search Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1438.0,
+    69.0,
+    1591.0,
+    92.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "Q",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1863.0,
+    71.0,
+    1881.0,
+    90.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "New",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    55.0,
+    130.0,
+    113.0,
+    154.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "C0",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    210.0,
+    130.0,
+    234.0,
+    151.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "CO",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    271.0,
+    129.0,
+    293.0,
+    155.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "1",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    512.0,
+    131.0,
+    540.0,
+    152.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "^ Sor",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    540.0,
+    131.0,
+    594.0,
+    153.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "≡ View",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    619.0,
+    131.0,
+    692.0,
+    152.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "Details",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1830.0,
+    131.0,
+    1888.0,
+    152.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "Home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    71.0,
+    186.0,
+    123.0,
+    211.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "Name",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    241.0,
+    174.0,
+    291.0,
+    199.0
+   ]
+  },
+  {
+   "id": 32,
+   "text": "Date modified",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    552.0,
+    177.0,
+    656.0,
+    197.0
+   ]
+  },
+  {
+   "id": 33,
+   "text": "Type",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    732.0,
+    177.0,
+    772.0,
+    200.0
+   ]
+  },
+  {
+   "id": 34,
+   "text": "Size",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    881.0,
+    175.0,
+    917.0,
+    197.0
+   ]
+  },
+  {
+   "id": 35,
+   "text": "Gallery",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    72.0,
+    228.0,
+    126.0,
+    250.0
+   ]
+  },
+  {
+   "id": 36,
+   "text": "address proof",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    229.0,
+    212.0,
+    354.0,
+    238.0
+   ]
+  },
+  {
+   "id": 37,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    552.0,
+    216.0,
+    699.0,
+    236.0
+   ]
+  },
+  {
+   "id": 38,
+   "text": "Microsoft Edge PD...",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    731.0,
+    215.0,
+    872.0,
+    238.0
+   ]
+  },
+  {
+   "id": 39,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    935.0,
+    215.0,
+    973.0,
+    237.0
+   ]
+  },
+  {
+   "id": 40,
+   "text": "×",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    36.0,
+    275.0,
+    54.0,
+    292.0
+   ]
+  },
+  {
+   "id": 41,
+   "text": "Aarushi - Person",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    72.0,
+    269.0,
+    186.0,
+    289.0
+   ]
+  },
+  {
+   "id": 42,
+   "text": "meeting notes",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    252.0,
+    254.0,
+    356.0,
+    274.0
+   ]
+  },
+  {
+   "id": 43,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    552.0,
+    253.0,
+    699.0,
+    273.0
+   ]
+  },
+  {
+   "id": 44,
+   "text": "Text Document",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    733.0,
+    253.0,
+    840.0,
+    273.0
+   ]
+  },
+  {
+   "id": 45,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    935.0,
+    252.0,
+    973.0,
+    274.0
+   ]
+  },
+  {
+   "id": 46,
+   "text": "Desktop",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    69.0,
+    347.0,
+    135.0,
+    370.0
+   ]
+  },
+  {
+   "id": 47,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    164.0,
+    349.0,
+    181.0,
+    367.0
+   ]
+  },
+  {
+   "id": 48,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    73.0,
+    387.0,
+    157.0,
+    409.0
+   ]
+  },
+  {
+   "id": 49,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    163.0,
+    389.0,
+    181.0,
+    407.0
+   ]
+  },
+  {
+   "id": 50,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    74.0,
+    428.0,
+    157.0,
+    449.0
+   ]
+  },
+  {
+   "id": 51,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    164.0,
+    429.0,
+    181.0,
+    447.0
+   ]
+  },
+  {
+   "id": 52,
+   "text": "Pictures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    71.0,
+    466.0,
+    133.0,
+    490.0
+   ]
+  },
+  {
+   "id": 53,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    164.0,
+    469.0,
+    181.0,
+    487.0
+   ]
+  },
+  {
+   "id": 54,
+   "text": "Music",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    71.0,
+    508.0,
+    120.0,
+    529.0
+   ]
+  },
+  {
+   "id": 55,
+   "text": "Videos",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    71.0,
+    547.0,
+    127.0,
+    570.0
+   ]
+  },
+  {
+   "id": 56,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    164.0,
+    549.0,
+    181.0,
+    568.0
+   ]
+  },
+  {
+   "id": 57,
+   "text": "Captures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    70.0,
+    587.0,
+    139.0,
+    611.0
+   ]
+  },
+  {
+   "id": 58,
+   "text": "edi1",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    71.0,
+    629.0,
+    108.0,
+    648.0
+   ]
+  },
+  {
+   "id": 59,
+   "text": "figures_rebuilt",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    65.0,
+    668.0,
+    175.0,
+    690.0
+   ]
+  },
+  {
+   "id": 60,
+   "text": "This PC",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    73.0,
+    747.0,
+    129.0,
+    768.0
+   ]
+  },
+  {
+   "id": 61,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    34.0,
+    790.0,
+    47.0,
+    805.0
+   ]
+  },
+  {
+   "id": 62,
+   "text": "Local Disk (C:)",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    81.0,
+    787.0,
+    184.0,
+    810.0
+   ]
+  },
+  {
+   "id": 63,
+   "text": "New Volume (I",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    55.0,
+    825.0,
+    188.0,
+    850.0
+   ]
+  },
+  {
+   "id": 64,
+   "text": "Network",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    70.0,
+    868.0,
+    138.0,
+    888.0
+   ]
+  },
+  {
+   "id": 65,
+   "text": "Linux",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    72.0,
+    908.0,
+    116.0,
+    929.0
+   ]
+  },
+  {
+   "id": 66,
+   "text": "docker-deskto",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    60.0,
+    949.0,
+    185.0,
+    969.0
+   ]
+  },
+  {
+   "id": 67,
+   "text": "2 items",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    20.0,
+    982.0,
+    79.0,
+    1007.0
+   ]
+  },
+  {
+   "id": 68,
+   "text": "目",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1845.0,
+    982.0,
+    1874.0,
+    1008.0
+   ]
+  },
+  {
+   "id": 69,
+   "text": "33℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    100.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 70,
+   "text": "Sunny",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    57.0,
+    1046.0,
+    112.0,
+    1073.0
+   ]
+  },
+  {
+   "id": 71,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    641.0,
+    1034.0,
+    706.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 72,
+   "text": "首",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1281.0,
+    1033.0,
+    1307.0,
+    1064.0
+   ]
+  },
+  {
+   "id": 73,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1028.0,
+    1685.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 74,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 75,
+   "text": "G",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1701.0,
+    1040.0,
+    1724.0,
+    1060.0
+   ]
+  },
+  {
+   "id": 76,
+   "text": "小",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1733.0,
+    1039.0,
+    1757.0,
+    1059.0
+   ]
+  },
+  {
+   "id": 77,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1814.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 78,
+   "text": "03:51 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1829.0,
+    1028.0,
+    1900.0,
+    1049.0
+   ]
+  }
+ ]
+}

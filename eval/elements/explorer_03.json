@@ -1,0 +1,1058 @@
+{
+ "format_version": 1,
+ "shot": "explorer_03.png",
+ "app": "explorer",
+ "captured_at": "2026-10-03T10:23:03+00:00",
+ "monitor": {
+  "left": 0,
+  "top": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "image_size_px": [
+  1920,
+  1080
+ ],
+ "screen_scale": 1.0,
+ "window": {
+  "class": "CabinetWClass",
+  "title": "tinyme_eval_home - File Explorer"
+ },
+ "timings_ms": {
+  "capture_ms": 86.2,
+  "read_ms": 16963.1
+ },
+ "counts": {
+  "merged": 79,
+  "kept": 79
+ },
+ "elements": [
+  {
+   "id": 1,
+   "text": "tinyme_eval_home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    49.0,
+    13.0,
+    185.0,
+    33.0
+   ]
+  },
+  {
+   "id": 2,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    276.0,
+    12.0,
+    295.0,
+    31.0
+   ]
+  },
+  {
+   "id": 3,
+   "text": "+",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    331.0,
+    14.0,
+    349.0,
+    33.0
+   ]
+  },
+  {
+   "id": 4,
+   "text": "X",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1878.0,
+    7.0,
+    1899.0,
+    29.0
+   ]
+  },
+  {
+   "id": 5,
+   "text": "←",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    25.0,
+    63.0,
+    43.0,
+    80.0
+   ]
+  },
+  {
+   "id": 6,
+   "text": "→",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    84.0,
+    64.0,
+    103.0,
+    81.0
+   ]
+  },
+  {
+   "id": 7,
+   "text": "个",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    143.0,
+    62.0,
+    164.0,
+    83.0
+   ]
+  },
+  {
+   "id": 8,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    204.0,
+    61.0,
+    225.0,
+    83.0
+   ]
+  },
+  {
+   "id": 9,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    311.0,
+    65.0,
+    323.0,
+    78.0
+   ]
+  },
+  {
+   "id": 10,
+   "text": "This PC > Local Disk (C:)",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    338.0,
+    59.0,
+    566.0,
+    84.0
+   ]
+  },
+  {
+   "id": 11,
+   "text": "a < l <  < d < s < ss <",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    556.0,
+    56.0,
+    1266.0,
+    87.0
+   ]
+  },
+  {
+   "id": 12,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1279.0,
+    65.0,
+    1291.0,
+    79.0
+   ]
+  },
+  {
+   "id": 13,
+   "text": "Search tinyme_eval_home",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1441.0,
+    60.0,
+    1649.0,
+    85.0
+   ]
+  },
+  {
+   "id": 14,
+   "text": "Q",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1871.0,
+    63.0,
+    1889.0,
+    81.0
+   ]
+  },
+  {
+   "id": 15,
+   "text": "New",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    48.0,
+    122.0,
+    103.0,
+    144.0
+   ]
+  },
+  {
+   "id": 16,
+   "text": "C0",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    198.0,
+    119.0,
+    225.0,
+    144.0
+   ]
+  },
+  {
+   "id": 17,
+   "text": "C0",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    260.0,
+    119.0,
+    286.0,
+    147.0
+   ]
+  },
+  {
+   "id": 18,
+   "text": "△",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    320.0,
+    119.0,
+    347.0,
+    146.0
+   ]
+  },
+  {
+   "id": 19,
+   "text": "Sort",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    500.0,
+    118.0,
+    588.0,
+    146.0
+   ]
+  },
+  {
+   "id": 20,
+   "text": "View",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    610.0,
+    122.0,
+    688.0,
+    143.0
+   ]
+  },
+  {
+   "id": 21,
+   "text": "•",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    734.0,
+    127.0,
+    759.0,
+    138.0
+   ]
+  },
+  {
+   "id": 22,
+   "text": "Details",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-right",
+   "bbox_px": [
+    1839.0,
+    121.0,
+    1897.0,
+    145.0
+   ]
+  },
+  {
+   "id": 23,
+   "text": "x",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    28.0,
+    178.0,
+    45.0,
+    195.0
+   ]
+  },
+  {
+   "id": 24,
+   "text": "Aarushi - Person",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    44.0,
+    172.0,
+    178.0,
+    192.0
+   ]
+  },
+  {
+   "id": 25,
+   "text": "Name",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    231.0,
+    164.0,
+    282.0,
+    189.0
+   ]
+  },
+  {
+   "id": 26,
+   "text": "Date modified",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    542.0,
+    166.0,
+    647.0,
+    189.0
+   ]
+  },
+  {
+   "id": 27,
+   "text": "Type",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    723.0,
+    168.0,
+    763.0,
+    191.0
+   ]
+  },
+  {
+   "id": 28,
+   "text": "Size",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    872.0,
+    165.0,
+    908.0,
+    188.0
+   ]
+  },
+  {
+   "id": 29,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    220.0,
+    204.0,
+    328.0,
+    229.0
+   ]
+  },
+  {
+   "id": 30,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    542.0,
+    207.0,
+    689.0,
+    227.0
+   ]
+  },
+  {
+   "id": 31,
+   "text": "File folder",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    722.0,
+    204.0,
+    798.0,
+    229.0
+   ]
+  },
+  {
+   "id": 32,
+   "text": "Desktop",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    39.0,
+    249.0,
+    126.0,
+    273.0
+   ]
+  },
+  {
+   "id": 33,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    154.0,
+    252.0,
+    172.0,
+    271.0
+   ]
+  },
+  {
+   "id": 34,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    219.0,
+    241.0,
+    328.0,
+    266.0
+   ]
+  },
+  {
+   "id": 35,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    542.0,
+    244.0,
+    689.0,
+    264.0
+   ]
+  },
+  {
+   "id": 36,
+   "text": "File folder",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    721.0,
+    241.0,
+    799.0,
+    267.0
+   ]
+  },
+  {
+   "id": 37,
+   "text": "Downloads",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    62.0,
+    291.0,
+    147.0,
+    312.0
+   ]
+  },
+  {
+   "id": 38,
+   "text": "letter to the society office",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    243.0,
+    280.0,
+    422.0,
+    303.0
+   ]
+  },
+  {
+   "id": 39,
+   "text": "03-10-2026 03:11 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    544.0,
+    283.0,
+    689.0,
+    300.0
+   ]
+  },
+  {
+   "id": 40,
+   "text": "Text Document",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    724.0,
+    282.0,
+    831.0,
+    302.0
+   ]
+  },
+  {
+   "id": 41,
+   "text": "1 KB",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-center",
+   "bbox_px": [
+    927.0,
+    282.0,
+    963.0,
+    301.0
+   ]
+  },
+  {
+   "id": 42,
+   "text": "Documents",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    64.0,
+    331.0,
+    147.0,
+    351.0
+   ]
+  },
+  {
+   "id": 43,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "top-left",
+   "bbox_px": [
+    154.0,
+    332.0,
+    172.0,
+    349.0
+   ]
+  },
+  {
+   "id": 44,
+   "text": "Pictures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    57.0,
+    369.0,
+    124.0,
+    393.0
+   ]
+  },
+  {
+   "id": 45,
+   "text": "Music",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    57.0,
+    409.0,
+    112.0,
+    434.0
+   ]
+  },
+  {
+   "id": 46,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    154.0,
+    412.0,
+    172.0,
+    431.0
+   ]
+  },
+  {
+   "id": 47,
+   "text": "Videos",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    62.0,
+    448.0,
+    117.0,
+    473.0
+   ]
+  },
+  {
+   "id": 48,
+   "text": "★",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    154.0,
+    452.0,
+    172.0,
+    471.0
+   ]
+  },
+  {
+   "id": 49,
+   "text": "Captures",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    42.0,
+    491.0,
+    130.0,
+    512.0
+   ]
+  },
+  {
+   "id": 50,
+   "text": "edi1",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    41.0,
+    531.0,
+    99.0,
+    552.0
+   ]
+  },
+  {
+   "id": 51,
+   "text": "figures_rebuilt",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    40.0,
+    572.0,
+    165.0,
+    592.0
+   ]
+  },
+  {
+   "id": 52,
+   "text": "This PC",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    41.0,
+    650.0,
+    119.0,
+    671.0
+   ]
+  },
+  {
+   "id": 53,
+   "text": "<",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    25.0,
+    693.0,
+    38.0,
+    708.0
+   ]
+  },
+  {
+   "id": 54,
+   "text": "Local Disk (C:)",
+   "source": "ocr",
+   "role": "text",
+   "region": "left-middle",
+   "bbox_px": [
+    66.0,
+    688.0,
+    175.0,
+    714.0
+   ]
+  },
+  {
+   "id": 55,
+   "text": "New Volume (I",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    46.0,
+    730.0,
+    179.0,
+    752.0
+   ]
+  },
+  {
+   "id": 56,
+   "text": "Network",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    771.0,
+    128.0,
+    791.0
+   ]
+  },
+  {
+   "id": 57,
+   "text": "Linux",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    62.0,
+    811.0,
+    107.0,
+    832.0
+   ]
+  },
+  {
+   "id": 58,
+   "text": "docker-deskto",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    66.0,
+    852.0,
+    176.0,
+    872.0
+   ]
+  },
+  {
+   "id": 59,
+   "text": "Ubuntu",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    49.0,
+    888.0,
+    131.0,
+    914.0
+   ]
+  },
+  {
+   "id": 60,
+   "text": "3 items",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    11.0,
+    992.0,
+    70.0,
+    1017.0
+   ]
+  },
+  {
+   "id": 61,
+   "text": "33℃",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    58.0,
+    1027.0,
+    101.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 62,
+   "text": "Sunny",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-left",
+   "bbox_px": [
+    57.0,
+    1046.0,
+    112.0,
+    1073.0
+   ]
+  },
+  {
+   "id": 63,
+   "text": "Widgets 33°C Sunny",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    8.0,
+    1020.0,
+    198.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 64,
+   "text": "Start",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-left",
+   "bbox_px": [
+    572.0,
+    1020.0,
+    628.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 65,
+   "text": "Search",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-center",
+   "bbox_px": [
+    669.0,
+    1035.0,
+    734.0,
+    1063.0
+   ]
+  },
+  {
+   "id": 66,
+   "text": "Search",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    631.0,
+    1030.0,
+    906.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 67,
+   "text": "Task View",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    908.0,
+    1020.0,
+    963.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 68,
+   "text": "Copilot",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    963.0,
+    1020.0,
+    1018.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 69,
+   "text": "File Explorer",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1018.0,
+    1020.0,
+    1073.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 70,
+   "text": "Microsoft Edge",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1073.0,
+    1020.0,
+    1128.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 71,
+   "text": "Microsoft Store",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1128.0,
+    1020.0,
+    1183.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 72,
+   "text": "Visual Studio Code",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1183.0,
+    1020.0,
+    1238.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 73,
+   "text": "Google Chrome",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-center",
+   "bbox_px": [
+    1238.0,
+    1020.0,
+    1293.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 74,
+   "text": "Paint",
+   "source": "uia",
+   "role": "Button",
+   "region": "bottom-right",
+   "bbox_px": [
+    1293.0,
+    1020.0,
+    1348.0,
+    1080.0
+   ]
+  },
+  {
+   "id": 75,
+   "text": "C",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1601.0,
+    1036.0,
+    1635.0,
+    1066.0
+   ]
+  },
+  {
+   "id": 76,
+   "text": "ENG",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1647.0,
+    1027.0,
+    1685.0,
+    1050.0
+   ]
+  },
+  {
+   "id": 77,
+   "text": "IN",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1653.0,
+    1048.0,
+    1679.0,
+    1070.0
+   ]
+  },
+  {
+   "id": 78,
+   "text": "03-10-2026",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1813.0,
+    1048.0,
+    1900.0,
+    1069.0
+   ]
+  },
+  {
+   "id": 79,
+   "text": "03:52 PM",
+   "source": "ocr",
+   "role": "text",
+   "region": "bottom-right",
+   "bbox_px": [
+    1829.0,
+    1028.0,
+    1900.0,
+    1049.0
+   ]
+  }
+ ]
+}

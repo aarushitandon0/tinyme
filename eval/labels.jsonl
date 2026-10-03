@@ -1,0 +1,41 @@
+// Tiny Me eval labels. One JSON object per line; blank lines and // lines are ignored.
+// Format: tinyme-eval skill. correct_ids are ids in the named element file; several
+// may be correct when they are the same click to her (a list row and its nav entry).
+// expect_cannot_see rows have no correct_ids: the right answer is "not on this screen".
+//
+// PARTIAL DATASET. Only File Explorer is labelled so far. See eval/results.md for what
+// that means for the numbers, and the collection note at the bottom of this file.
+//
+// --- explorer_01: the Downloads folder, seven items, scene A step 3 ----------------
+{"id": "explorer_01_a", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "I cannot find the electricity bill", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [33]}
+{"id": "explorer_01_b", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "open the photo from diwali", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [37]}
+{"id": "explorer_01_c", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "where is my train ticket", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [54]}
+{"id": "explorer_01_d", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "I need the insurance renewal form", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [43]}
+{"id": "explorer_01_e", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "open my recipe notes", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [49]}
+{"id": "explorer_01_f", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "show me the water bill", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [60]}
+{"id": "explorer_01_g", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "open the old stuff folder", "history": ["Open File Explorer", "Click Downloads"], "correct_ids": [28]}
+{"id": "explorer_01_h", "screenshot": "explorer_01.png", "elements": "explorer_01.json", "app": "explorer", "goal": "turn on bluetooth", "history": [], "correct_ids": [], "expect_cannot_see": true}
+
+// --- explorer_02: the Documents folder, the wrong folder for scene A ---------------
+{"id": "explorer_02_a", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "I can't find the file I downloaded", "history": ["Open File Explorer"], "correct_ids": [48]}
+{"id": "explorer_02_b", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "open my meeting notes", "history": ["Open File Explorer"], "correct_ids": [42]}
+{"id": "explorer_02_c", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "open the address proof", "history": ["Open File Explorer"], "correct_ids": [36]}
+{"id": "explorer_02_d", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "show me my photos", "history": ["Open File Explorer"], "correct_ids": [52]}
+{"id": "explorer_02_e", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "find the electricity bill I downloaded", "history": ["Open File Explorer"], "correct_ids": [48]}
+{"id": "explorer_02_f", "screenshot": "explorer_02.png", "elements": "explorer_02.json", "app": "explorer", "goal": "open my email", "history": [], "correct_ids": [], "expect_cannot_see": true}
+
+// --- explorer_03: a folder holding Downloads and Documents, plus the taskbar --------
+{"id": "explorer_03_a", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "I can't find the file I downloaded", "history": ["Open File Explorer"], "correct_ids": [34, 37]}
+{"id": "explorer_03_b", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "open the letter I wrote to the society office", "history": ["Open File Explorer"], "correct_ids": [38]}
+{"id": "explorer_03_c", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "open the Documents folder", "history": ["Open File Explorer"], "correct_ids": [29, 42]}
+{"id": "explorer_03_d", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "open Paint so I can look at a picture", "history": [], "correct_ids": [74]}
+{"id": "explorer_03_e", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "open my code editor", "history": [], "correct_ids": [72]}
+{"id": "explorer_03_f", "screenshot": "explorer_03.png", "elements": "explorer_03.json", "app": "explorer", "goal": "make the screen brighter", "history": [], "correct_ids": [], "expect_cannot_see": true}
+
+// --- collection note ----------------------------------------------------------------
+// These three screens were collected with eval/collect.py on the developer's laptop,
+// against a throwaway folder of dummy files in the system temp directory. The other
+// four apps in collect.py (settings, calculator, paint, demo_site) are not labelled
+// here because their screens could not be collected cleanly: the collector needs the
+// desktop to itself, and the machine was in use. Re-run `python eval\collect.py
+// --group all` on a quiet machine, then label the new screens in the same format.

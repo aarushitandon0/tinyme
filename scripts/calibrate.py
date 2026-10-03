@@ -29,7 +29,7 @@ from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from app import capture, ocr  # noqa: E402
 from app.elements import number_elements, to_logical  # noqa: E402
-from app.overlay import CIRCLE_PAD, Mark, Overlay  # noqa: E402
+from app.overlay import FRAME_PAD, Mark, MarkShape, Overlay  # noqa: E402
 
 log = logging.getLogger("calibrate")
 
@@ -90,15 +90,20 @@ def main() -> int:
         logical = to_logical(element.bbox_px, dpr)
         print(f"  physical ({left:.0f},{top:.0f})-({right:.0f},{bottom:.0f})  ->  "
               f"logical ({logical[0]:.0f},{logical[1]:.0f})-({logical[2]:.0f},{logical[3]:.0f})"
-              f"   ring pad {CIRCLE_PAD} logical px")
+              f"   frame pad {FRAME_PAD} logical px")
 
+    # FRAME, not the usual auto-chosen shape: this script exists to catch a
+    # physical->logical conversion that is off by a few pixels, and a frame
+    # sits on the bbox's real edges where a ring hides that error inside 20 px
+    # of padding.
     marks = [
-        Mark(bbox_px=element.bbox_px, instruction=f"{element.id}. this word")
+        Mark(bbox_px=element.bbox_px, instruction=f"{element.id}. this word",
+             shape=MarkShape.FRAME)
         for element in largest
     ]
     overlay.show_marks(marks)
 
-    print(f"\nHolding for {args.seconds:.0f} s. Each ring should sit around its word, "
+    print(f"\nHolding for {args.seconds:.0f} s. Each frame should sit squarely on its word, "
           "not offset down-right or shrunk toward the top-left corner.")
     QTimer.singleShot(int(args.seconds * 1000), app.quit)
     app.exec()
