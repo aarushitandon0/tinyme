@@ -41,6 +41,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app import actions as actions_mod
+from app import brain as brain_mod
 from app import capture as capture_mod
 from app import config
 from app import guard as guard_mod
@@ -474,6 +476,10 @@ class PromptWindow(QWidget):
     """
 
     submitted = Signal(str)
+    #: "Find it for me": the one thing Tiny Me does *instead* of guiding
+    #: (MASTERSPEC 3A, 4). A separate signal rather than a mode flag, so the
+    #: guide path cannot accidentally start doing things for her.
+    find_requested = Signal(str)
     did_it = Signal()
     stopped = Signal()
 
@@ -489,6 +495,8 @@ class PromptWindow(QWidget):
 
         self._go = QPushButton("Show me how")
         self._go.clicked.connect(self._submit)
+        self._find = QPushButton("Find it for me")
+        self._find.clicked.connect(self._find_it)
         self._done = QPushButton("I did it")
         self._done.clicked.connect(self.did_it.emit)
         self._stop = QPushButton("Stop")
@@ -498,6 +506,7 @@ class PromptWindow(QWidget):
         buttons.addWidget(self._stop)
         buttons.addStretch(1)
         buttons.addWidget(self._done)
+        buttons.addWidget(self._find)
         buttons.addWidget(self._go)
 
         layout = QVBoxLayout(self)
@@ -512,6 +521,10 @@ class PromptWindow(QWidget):
         if goal:
             self.submitted.emit(goal)
 
+    def _find_it(self) -> None:
+        """"Find it for me" works with an empty box: that means "the newest one"."""
+        self.find_requested.emit(self._box.text().strip())
+
     def ask(self) -> None:
         """Show, focus and raise. Called on the main thread only."""
         self._box.selectAll()
@@ -525,6 +538,7 @@ class PromptWindow(QWidget):
 
     def set_busy(self, busy: bool) -> None:
         self._go.setEnabled(not busy)
+        self._find.setEnabled(not busy)
         self._box.setEnabled(not busy)
 
     def set_task_active(self, active: bool) -> None:
@@ -553,6 +567,7 @@ class TinyMe(QObject):
         self.overlay = Overlay()
         self.window = PromptWindow()
         self.window.submitted.connect(self.start_task)
+        self.window.find_requested.connect(self.find_for_her)
         self.window.did_it.connect(self.mark_done)
         self.window.stopped.connect(self.stop_everything)
 
@@ -614,11 +629,48 @@ class TinyMe(QObject):
 
         self._timer.stop()
         self.overlay.clear()
-        self.loop = TaskLoop(goal, planner=self._plan_stage)
+        # Reading the notes file is a few lines off a warm disk, so it happens
+        # here rather than earning its own worker hop; the goal has to be known
+        # to choose which notes are relevant, and the loop needs them before
+        # its first plan.
+        notes = brain_mod.notes_for_goal(goal)
+        if notes:
+            log.info("including %d teach note(s) with this goal", len(notes))
+        self.loop = TaskLoop(goal, planner=self._plan_stage, teach_notes=notes)
         self.window.set_task_active(True)
         self.window.set_status("Looking at your screen...")
         self.window.set_busy(True)
         self._run(self.loop.start, self._step_ready)
+
+    def find_for_her(self, goal: str) -> None:
+        """"Find it for me": open Explorer on her file (MASTERSPEC 3A, P8).
+
+        Not a guided task: there is no circle, no success check and no model
+        call at all. It ends her current task first, because the Explorer window
+        it opens would invalidate whatever step she was being shown anyway.
+
+        No screenshot is taken on this path. The screen is not read, so there is
+        nothing for the guard to inspect -- what ``actions`` checks instead is
+        the *permission* (``can_do_it(FIND_FILE)``, CLAUDE.md rule 4).
+        """
+        if self._busy:
+            return
+        self._timer.stop()
+        if self.loop is not None:
+            self.loop.stop()
+            self.loop = None
+        self.overlay.clear()
+        self.overlay.set_looking(False)
+        self.window.set_task_active(False)
+        self.window.set_status("Looking in your Downloads folder...")
+        self.window.set_busy(True)
+        self._run(lambda: actions_mod.find_for_her(goal), self._found_file)
+
+    def _found_file(self, result: actions_mod.FindResult) -> None:
+        """The search came back. Main thread."""
+        log.info("find-it-for-me: opened=%s because=%s", result.opened,
+                 result.hit.because if result.hit else "nothing")
+        self.window.set_status(result.message)
 
     def mark_done(self) -> None:
         """"I did it": force this step to succeed and move on (MASTERSPEC 5.5)."""

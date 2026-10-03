@@ -21,9 +21,11 @@ traceback.
 from __future__ import annotations
 
 import logging
+import re
 import time
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Protocol, Sequence
 
 from pydantic import BaseModel, Field, ValidationError
@@ -85,6 +87,34 @@ MAX_TEACH_NOTES = 3
 #: Plain words, no jargon, and something she can actually try.
 GENERIC_HINT = "I could not work this one out. Try scrolling, or open the menu at the top."
 
+#: Where her teach notes live (MASTERSPEC 7, Tier 2): one plain line per fact
+#: about her laptop that no screenshot can tell us -- her printer's name, which
+#: browser she actually uses, where she keeps photos. Plain text, not JSON, so
+#: she or I can edit it in Notepad without breaking anything.
+TEACH_NOTES_PATH = Path("notes") / "her_setup.txt"
+
+#: Words that appear in goals and notes alike and say nothing about the
+#: subject. Short tokens are dropped by length, so this only needs the common
+#: long ones.
+_NOTE_STOPWORDS = frozenset("""
+about again always also been come down find from have help here just know
+like more much need open please should some something than that them then
+there these they this those very want what when where which with would your
+""".split())
+
+#: Shortest word allowed to connect a goal to a note. Three-letter words
+#: ("the", "pdf", "one") either say nothing or match everything.
+MIN_NOTE_WORD = 4
+
+#: Splits text into words for note matching.
+_NOTE_WORDS = re.compile(r"[^a-z0-9]+")
+
+#: How alike two words must be to count as the same word. This absorbs the way
+#: she types -- "print this page" against a note about her printer, "scans"
+#: against "scanned" -- and nothing looser: at 70 "photos" starts matching
+#: "Documents" through sheer letter overlap.
+NOTE_WORD_RATIO = 80.0
+
 
 class PlanInvalid(Exception):
     """A model reply that did not survive validation.
@@ -126,6 +156,93 @@ def build_system_prompt(language: str | None = None) -> str:
         "true and put one short suggestion in hint_if_missing.\n"
         "Never ask her for a password, OTP, PIN or card number."
     )
+
+
+def load_teach_notes(path: Path | str | None = None) -> list[str]:
+    """Read her setup notes: one fact per line, blanks and ``#`` ignored.
+
+    A missing file is the normal case on a fresh checkout, not an error -- it
+    just means nobody has told Tiny Me anything about this laptop yet.
+    """
+    path = Path(path) if path is not None else TEACH_NOTES_PATH
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+
+    lines = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            lines.append(line)
+    return lines
+
+
+def _content_words(text: str) -> list[str]:
+    """The words in a goal or a note that are about something."""
+    words = _NOTE_WORDS.split((text or "").casefold())
+    return [word for word in words
+            if len(word) >= MIN_NOTE_WORD and word not in _NOTE_STOPWORDS]
+
+
+def _same_word(a: str, b: str) -> bool:
+    """Is this her word for that thing? ("print" and "printer", "scans" and "scanned")"""
+    if a == b:
+        return True
+    shorter, longer = sorted((a, b), key=len)
+    if len(shorter) >= MIN_NOTE_WORD and longer.startswith(shorter):
+        return True
+
+    from rapidfuzz import fuzz
+
+    return fuzz.ratio(a, b) >= NOTE_WORD_RATIO
+
+
+def notes_mentioning(goal_words: Sequence[str], note: str) -> int:
+    """How many of her words this note talks about."""
+    note_words = _content_words(note)
+    return sum(1 for word in goal_words
+               if any(_same_word(word, other) for other in note_words))
+
+
+def matching_notes(
+    goal: str,
+    notes: Sequence[str],
+    limit: int = MAX_TEACH_NOTES,
+) -> list[str]:
+    """The notes worth sending with *this* goal, best first (P8).
+
+    Her whole notes file would fit in the prompt, so the filtering is not about
+    size -- it is about relevance. "Her printer is the HP in the study" has no
+    business in a step about zooming a document: it spends her wait on tokens
+    that can only mislead.
+
+    The rule is a shared subject word, not a similarity score, and that is a
+    decision worth recording. A whole-string fuzzy score does not separate
+    these two cases: measured against the shipped example file, a goal about
+    photos scores 48 against the photos note and 44 against an unrelated one,
+    so any threshold that keeps the right note keeps most of the wrong ones
+    too. The notes are sentences and the goals are fragments; what they share
+    when they are about the same thing is a *word*. Fuzziness lives at the word
+    level instead, where "print" and "printer" are plainly the same subject and
+    "photos" and "documents" are plainly not.
+
+    Ranked by how many of her words a note mentions, then by the order she
+    wrote them -- on a tie, her ordering is the only signal left.
+    """
+    goal_words = _content_words(goal)
+    if not goal_words or not notes:
+        return []
+
+    scored = [(notes_mentioning(goal_words, note), index, note)
+              for index, note in enumerate(notes)]
+    scored.sort(key=lambda row: (-row[0], row[1]))
+    return [note for shared, _, note in scored if shared][:limit]
+
+
+def notes_for_goal(goal: str, path: Path | str | None = None) -> list[str]:
+    """Load the notes file and return the lines that match this goal."""
+    return matching_notes(goal, load_teach_notes(path))
 
 
 def _history_block(history: Sequence[str]) -> str:

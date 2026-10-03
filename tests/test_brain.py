@@ -11,10 +11,14 @@ import pytest
 
 from app import config
 from app.brain import (
+    MAX_TEACH_NOTES,
     PlanInvalid,
     build_messages,
     build_system_prompt,
     fallback_plan,
+    load_teach_notes,
+    matching_notes,
+    notes_for_goal,
     plan_step,
     validate_plan,
 )
@@ -128,6 +132,89 @@ class TestBuildMessages:
     def test_history_is_omitted_when_empty(self):
         user = build_messages(goal="x", elements=ELEMENTS)[-1]["content"]
         assert "already done" not in user
+
+
+class TestTeachNotes:
+    """Her setup notes: loading them, and choosing which ones are relevant (P8).
+
+    The point of filtering is not prompt size -- the whole file would fit. It is
+    that an irrelevant note is a thing the model can anchor on: tell it about
+    her printer while she is trying to zoom a document and it may well suggest
+    printing.
+    """
+
+    NOTES = [
+        "Her printer is called Office Printer and lives in the back room",
+        "She uses Microsoft Edge, not Chrome",
+        "Photos from her phone end up in Pictures, in a folder named Camera Roll",
+        "Scanned documents go in Documents, in a folder named Scans",
+    ]
+
+    def test_loads_one_fact_per_line(self, tmp_path):
+        path = tmp_path / "her_setup.txt"
+        path.write_text(
+            "# a comment\n\nHer printer is Office Printer\n   \nShe uses Edge\n",
+            encoding="utf-8",
+        )
+        assert load_teach_notes(path) == ["Her printer is Office Printer",
+                                         "She uses Edge"]
+
+    def test_a_missing_file_is_not_an_error(self, tmp_path):
+        """The normal case on a fresh checkout: nobody has taught it anything."""
+        assert load_teach_notes(tmp_path / "nothing.txt") == []
+
+    def test_picks_the_note_about_what_she_asked(self):
+        chosen = matching_notes("where do my phone photos go", self.NOTES)
+        assert chosen
+        assert "Camera Roll" in chosen[0]
+
+    def test_drops_notes_about_other_things(self):
+        chosen = matching_notes("where do my phone photos go", self.NOTES)
+        assert all("printer" not in note.casefold() for note in chosen)
+
+    def test_an_unrelated_goal_takes_nothing(self):
+        assert matching_notes("make this text bigger", self.NOTES) == []
+
+    def test_her_word_need_not_be_the_notes_word(self):
+        """"print this page" is about the printer note. Word-level fuzziness."""
+        chosen = matching_notes("print this page", self.NOTES)
+        assert chosen and "Office Printer" in chosen[0]
+
+    def test_a_note_about_a_moved_folder_reaches_the_download_goal(self):
+        """Why this feature exists: ``~/Downloads`` is not where hers is."""
+        notes = ["Her Downloads folder has been moved to the D drive"]
+        assert matching_notes("i cant find the file i downloaded", notes) == notes
+
+    def test_the_best_match_comes_first(self):
+        chosen = matching_notes("open the scans folder", self.NOTES)
+        assert "Scans" in chosen[0]
+
+    def test_never_more_than_three(self):
+        many = [f"She keeps her photos in folder number {n}" for n in range(10)]
+        assert len(matching_notes("where are my photos", many)) == MAX_TEACH_NOTES
+
+    def test_an_empty_goal_takes_nothing(self):
+        assert matching_notes("", self.NOTES) == []
+
+    def test_notes_for_goal_reads_and_filters(self, tmp_path):
+        path = tmp_path / "her_setup.txt"
+        path.write_text("\n".join(self.NOTES), encoding="utf-8")
+        chosen = notes_for_goal("where do my phone photos go", path)
+        assert chosen and "Camera Roll" in chosen[0]
+
+    def test_the_shipped_example_file_is_loadable_and_dummy(self):
+        """CLAUDE.md: the file in the repo carries dummy content only.
+
+        A real printer name or folder path landing in git is a privacy failure,
+        and the example file is exactly where one would land by accident.
+        """
+        from pathlib import Path
+
+        shipped = Path(__file__).resolve().parents[1] / "notes" / "her_setup.txt"
+        lines = load_teach_notes(shipped)
+        assert lines, "the example file should have some dummy lines in it"
+        blob = shipped.read_text(encoding="utf-8")
+        assert "DUMMY" in blob.upper()
 
 
 # --- validation ------------------------------------------------------------

@@ -1,0 +1,16 @@
+# Teach notes - things about this laptop that no screenshot can tell Tiny Me.
+#
+# One fact per line, plain English. Lines starting with # are ignored.
+# The three lines that best match the goal she typed are added to the prompt
+# (app/brain.py: notes_for_goal), so write them the way she would say them.
+#
+# EVERYTHING BELOW IS DUMMY CONTENT for the repo. Nothing here is real:
+# CLAUDE.md forbids her actual printer name, folders or details in git.
+
+Her printer is called Office Printer and lives in the back room.
+She uses Microsoft Edge, not Chrome, and her bookmarks bar is turned off.
+Photos from her phone end up in Pictures, in a folder named Camera Roll.
+Scanned documents go in Documents, in a folder named Scans.
+Her Downloads folder has been moved to the D drive.
+She reads at 125% zoom, so windows are usually larger than default.
+The Wi-Fi network she uses is the one named Home.
