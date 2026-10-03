@@ -656,7 +656,28 @@ A LoRA supervised fine-tune of `Qwen/Qwen3.5-4B` on Tinker, framed as a model-sw
 
 `finetune/tinker_train.py` implements the documented cookbook flow: `conversation_to_datum` with `LAST_ASSISTANT_MESSAGE`, `forward_backward`, `optim_step`, `save_weights_for_sampler`. It is a dry run by default, prints a cost estimate, and refuses to proceed above `--budget-usd`.
 
-**Status.** The pipeline is built and tested. The training run has not been performed and no tuned number exists. `finetune/DECISION.md` is the record. The blockers are documented there and in section 20.
+**Status.** The run was performed on 4 October 2026: LoRA rank 16, three epochs, 80 training examples, 126 s of training, roughly 0.17 US dollars, holding out the whole demo_site application. `finetune/run.json` records the run and `eval/results_tinker.md` carries the generated rows. `finetune/DECISION.md` is the record of the decision as it stood before the run.
+
+| system | correct element | valid JSON | median s | p90 s |
+|---|---|---|---|---|
+| `tinker_base` | 0/22 (0 percent) | 0/22 (0 percent) | 2.0 | 2.0 |
+| `tinker_tuned` | 3/22 (14 percent) | 22/22 (100 percent) | 2.0 | 8.0 |
+
+One of these results is unambiguous and one is not.
+
+**Valid JSON went from 0 of 22 to 22 of 22.** The untuned model never returned a parseable object for this prompt; the tuned model always did. That is what 80 examples bought, and it is the result that holds.
+
+**Correct element went from 0 of 22 to 3 of 22, and that pair must not be read as a picking improvement.** The untuned zero is a formatting failure, not a picking failure: the model never produced an answer that could be scored for correctness, so it never got as far as choosing an element. There is therefore no untuned picking baseline in this table, and the only honest reference point would be a `pipeline_<tag>` row scored on the same 22 demo_site rows, which does not exist yet. The 14 percent figure is also small-sample: across 22 rows, one row is 4.5 points.
+
+What the failures show, stated mechanically:
+
+- The tuned model picks the caption beside a control rather than the control. It chose "Date of travel" where the label is the "dd-mm-yyyy" field, and "Username" where the label is the input box.
+- Of its 22 picks, 21 were `ocr:text` and one was a `uia:Button`.
+- On all three `expect_cannot_see` rows it picked an element anyway. It never answers "not on this screen", although `cannot_see_it` is a real label in the dataset. Seven such rows exist in `eval/labels.jsonl`, of which the training split saw only those belonging to File Explorer.
+
+Training was File Explorer only and the test was a rendered web page, so this is cross-application transfer in the strict sense the specification asked for, and correspondingly hard. It also means the table says nothing about whether tuning helps on Explorer-like screens.
+
+**What may be claimed from this:** that the brain is swappable, that the fine-tuning path runs end to end for under a dollar, and that fine-tuning fixed format compliance outright. **Not** that fine-tuning improved element picking. The caveats in `finetune/data_card.md` still hold: `instruction` and `success_check` are templated, so this is a tuned *picker* and dropping it into `app/brain.py` wholesale would regress the application.
 
 ---
 
@@ -745,7 +766,7 @@ This is far above the 15 s per step figure the project plan set as its checkpoin
 
 - Task completion rate and recovery rate. These require the application running against a changing screen with a person in front of it. `eval/live_runs.md` is the log for those and is empty.
 - The vision-coordinate baseline. One call with a 1920 by 1080 screenshot did not return within 180 s on this CPU while OCR was also running.
-- Any tuned-model number. The training run has not happened.
+- Tuned-model latency comparably. The `tinker_*` rows were sampled from a hosted service over the internet; their correct-element rates are comparable with the local rows, their latencies are not.
 
 ---
 
@@ -867,7 +888,8 @@ tiny-me/
     build_dataset.py      labels to Tinker chat JSONL
     tinker_train.py       LoRA training flow
     data_card.md
-    DECISION.md           why the run has not happened
+    DECISION.md           the pre-run decision record
+    run.json              what the run actually cost and produced
   scripts/
     bench_gemma.py
     calibrate.py
@@ -917,12 +939,14 @@ Stated plainly, because the value of the project rests on the numbers being trus
 
 ### Evaluation
 
-- **The dataset covers one application, not five.** `eval/labels.jsonl` contains 20 labelled rows across 3 File Explorer screens. The specification called for roughly 40 rows across 4 or 5 applications. Every figure produced by the harness is therefore a figure about File Explorer, and the per-application table exists precisely so that an average cannot conceal this.
+- **The dataset covers two applications, not five.** `eval/labels.jsonl` contains 42 labelled rows: 20 across 3 File Explorer screens and 22 across 6 demo_site screens. The specification called for roughly 40 rows across 4 or 5 applications, so the row count is now met and the application count is not. The per-application table exists precisely so that an average cannot conceal this.
 - **Collection stopped for a mechanical reason, not a conceptual one.** The collector requires an idle desktop: it launches an application, waits for its window to reach the foreground, and discards the capture if anything else intervened. On a machine in concurrent use, focus is taken back between the check and the grab. Four of the five applications were lost to this.
 - **Labels were written by the agent that built the harness, not reviewed by a second person.** A label is a judgement about what she would want clicked. Rows where two targets are defensible list both ids rather than selecting one.
 - **No live numbers exist.** Task completion rate and recovery rate require a person in front of a changing screen. `eval/live_runs.md` is empty.
 - **No vision-coordinate baseline number exists.** The single attempt did not return within 180 s.
-- **No tuned-model number exists.** The Tinker run has not been performed. Two blockers: only File Explorer is labelled, so there is no held-out *application* to test against, and 20 rows produce a 6-example test split in which one example is worth 17 percentage points. Cost is not the blocker, estimated at roughly 0.12 US dollars for three epochs.
+- **The tuned-model number measures format compliance, not picking.** Labelling demo_site cleared the held-out-application blocker and the run was performed; section 15 has the rows. Valid JSON went from 0 of 22 to 22 of 22, which is a real effect. Correct element went from 0 of 22 to 3 of 22, which is not an interpretable gain, because the untuned zero is the same formatting failure rather than a picking score. Reporting "0 percent to 14 percent" as an improvement would be wrong.
+- **The tuned picker never abstains.** It chose an element on all three `expect_cannot_see` rows in the test split.
+- **Still only two applications, and the tuned run used one of them for training.** 22 test rows make one row worth 4.5 points, and the three remaining unlabelled application groups (settings, calculator, paint) are the cheapest improvement available to every figure in this document.
 
 ### Privacy posture
 
