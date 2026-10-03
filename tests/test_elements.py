@@ -10,7 +10,10 @@ from app.elements import (
     Element,
     Monitor,
     cap_elements,
+    find_by_id,
     classify_region,
+    iou,
+    merge_elements,
     number_elements,
     render_for_model,
     to_logical,
@@ -211,3 +214,152 @@ class TestRenderForModel:
 
     def test_empty_list_renders_empty_string(self):
         assert render_for_model([]) == ""
+
+
+class TestFindById:
+    """The circle lands on whatever this returns, so an off-by-one here is
+    MASTERSPEC 14's "circle in the wrong place" risk in its purest form."""
+
+    def test_returns_the_element_with_that_id(self):
+        numbered = number_elements([
+            el(0, 0, 50, 20, text="first"),
+            el(0, 100, 50, 120, text="second"),
+            el(0, 200, 50, 220, text="third"),
+        ])
+        assert find_by_id(numbered, 2).text == "second"
+
+    def test_returns_none_for_an_id_not_present(self):
+        numbered = number_elements([el(0, 0, 50, 20)])
+        assert find_by_id(numbered, 7) is None
+
+    def test_returns_none_for_the_sentinel_zero(self):
+        """0 means "nothing chosen" in StepPlan, never the first element."""
+        numbered = number_elements([el(0, 0, 50, 20)])
+        assert find_by_id(numbered, 0) is None
+
+    def test_ids_are_one_based_so_id_one_is_the_first_in_reading_order(self):
+        numbered = number_elements([
+            el(0, 300, 50, 320, text="lower"),
+            el(0, 0, 50, 20, text="upper"),
+        ])
+        assert find_by_id(numbered, 1).text == "upper"
+
+
+class TestIou:
+    def test_identical_boxes_fully_overlap(self):
+        assert iou((0, 0, 10, 10), (0, 0, 10, 10)) == pytest.approx(1.0)
+
+    def test_disjoint_boxes_do_not_overlap(self):
+        assert iou((0, 0, 10, 10), (50, 50, 60, 60)) == 0.0
+
+    def test_touching_edges_are_not_an_overlap(self):
+        assert iou((0, 0, 10, 10), (10, 0, 20, 10)) == 0.0
+
+    def test_half_covered_box(self):
+        # Intersection 50, union 150.
+        assert iou((0, 0, 10, 10), (5, 0, 15, 10)) == pytest.approx(1 / 3)
+
+    def test_degenerate_box_is_zero_not_a_crash(self):
+        assert iou((5, 5, 5, 5), (0, 0, 10, 10)) == 0.0
+
+
+class TestMergeElements:
+    """MASTERSPEC 5.2 dedupe: IoU > 0.5 and similar text means one element.
+
+    UIA wins on role (it knows a Button is a Button); OCR only supplies text
+    when UIA has no name. Synthetic boxes here so the rule is pinned down
+    without a screen.
+    """
+
+    def test_same_thing_seen_twice_becomes_one_element(self):
+        ocr_box = el(100, 1030, 200, 1070, text="Downloads", source="ocr", role="text")
+        uia_box = el(102, 1032, 198, 1068, text="Downloads", source="uia", role="ListItem")
+        merged = merge_elements([ocr_box], [uia_box])
+        assert len(merged) == 1
+        # UIA kept, because the role is what tells the model it is clickable.
+        assert (merged[0].source, merged[0].role) == ("uia", "ListItem")
+
+    def test_near_miss_text_is_still_one_element(self):
+        # OCR read "Down1oads"; rapidfuzz ratio is well above 85.
+        ocr_box = el(100, 1030, 200, 1070, text="Down1oads", source="ocr")
+        uia_box = el(100, 1030, 200, 1070, text="Downloads", source="uia", role="ListItem")
+        assert len(merge_elements([ocr_box], [uia_box])) == 1
+
+    def test_overlapping_but_different_text_stays_two_elements(self):
+        ocr_box = el(100, 1030, 200, 1070, text="Cancel", source="ocr")
+        uia_box = el(100, 1030, 200, 1070, text="Save as", source="uia", role="Button")
+        assert len(merge_elements([ocr_box], [uia_box])) == 2
+
+    def test_same_text_far_apart_stays_two_elements(self):
+        ocr_box = el(100, 100, 200, 140, text="Downloads", source="ocr")
+        uia_box = el(900, 600, 1000, 640, text="Downloads", source="uia", role="ListItem")
+        assert len(merge_elements([ocr_box], [uia_box])) == 2
+
+    def test_barely_overlapping_boxes_stay_two_elements(self):
+        # IoU 1/3, under the 0.5 threshold.
+        ocr_box = el(0, 0, 10, 10, text="Downloads", source="ocr")
+        uia_box = el(5, 0, 15, 10, text="Downloads", source="uia", role="ListItem")
+        assert len(merge_elements([ocr_box], [uia_box])) == 2
+
+    def test_exactly_at_the_iou_threshold_stays_two_elements(self):
+        """The rule is IoU *greater than* 0.5, so the boundary does not merge.
+
+        Intersection 50, union 100 -> IoU exactly 0.5.
+        """
+        ocr_box = el(0, 0, 10, 10, text="Downloads", source="ocr")
+        uia_box = el(5, 0, 15, 10, text="Downloads", source="uia", role="ListItem")
+        assert len(merge_elements([ocr_box], [uia_box], iou_threshold=0.5)) == 2
+        # And just under the boundary it does merge, so the comparison is not
+        # simply rejecting everything.
+        assert len(merge_elements([ocr_box], [uia_box], iou_threshold=0.3)) == 1
+
+    def test_two_uia_controls_over_one_ocr_box_keep_both(self):
+        """An OCR box is claimed once; the loser keeps its own text and survives.
+
+        Otherwise one of two real controls would vanish from the list, and the
+        model cannot choose what it cannot see.
+        """
+        ocr_box = el(100, 100, 200, 140, text="Downloads", source="ocr")
+        first = el(100, 100, 200, 140, text="Downloads", source="uia", role="ListItem")
+        second = el(98, 98, 202, 142, text="Downloads", source="uia", role="TreeItem")
+        merged = merge_elements([ocr_box], [first, second])
+        assert [(e.source, e.role) for e in merged] == [
+            ("uia", "ListItem"), ("uia", "TreeItem"),
+        ]
+
+    def test_two_ocr_boxes_inside_one_uia_control(self):
+        """Only the one that matches the control's name is folded in.
+
+        A "Save as" button containing the words "Save" and "as": the full-width
+        OCR line matches the name and merges; a stray word that does not match
+        stays, because dropping it could lose a real element.
+        """
+        line = el(100, 100, 200, 130, text="Save as", source="ocr")
+        word = el(100, 100, 200, 130, text="Cancel", source="ocr")
+        uia_box = el(100, 100, 200, 130, text="Save as", source="uia", role="Button")
+        merged = merge_elements([line, word], [uia_box])
+        assert sorted((e.text, e.source) for e in merged) == [
+            ("Cancel", "ocr"), ("Save as", "uia"),
+        ]
+
+    def test_taskbar_icon_survives_with_no_ocr_at_all(self):
+        """Scene A's first step: OCR cannot see the icon, UIA can."""
+        uia_box = el(1046, 1020, 1101, 1080, text="File Explorer",
+                     source="uia", role="Button")
+        [element] = merge_elements([], [uia_box])
+        assert element.text == "File Explorer"
+
+    def test_result_is_in_reading_order_and_unnumbered(self):
+        merged = merge_elements(
+            [el(0, 500, 50, 520, text="lower", source="ocr")],
+            [el(0, 0, 50, 20, text="upper", source="uia", role="Button")],
+        )
+        assert [element.text for element in merged] == ["upper", "lower"]
+        assert all(element.id == 0 for element in merged)
+
+    def test_inputs_are_not_mutated(self):
+        ocr_list = [el(0, 0, 10, 10, text="a", source="ocr")]
+        uia_list = [el(0, 0, 10, 10, text="", source="uia", role="Button")]
+        merge_elements(ocr_list, uia_list)
+        assert ocr_list[0].text == "a"
+        assert uia_list[0].text == ""

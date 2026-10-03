@@ -48,6 +48,13 @@ LABEL_FONT_PT = 15
 LABEL_PAD = 10
 LABEL_GAP = 14
 SCREEN_MARGIN = 8
+#: Where a circle-less message sits, in logical pixels from the top.
+BANNER_TOP = 48
+
+#: MASTERSPEC 6's promise, in the words she reads.
+LOOKING_TEXT = "Tiny Me is looking"
+LOOKING_BG = QColor(255, 92, 0, 225)
+LOOKING_FONT_PT = 11
 
 #: Probe text for the capture-exclusion check. Deliberately nonsense: an
 #: earlier version used "TINYME OVERLAY CHECK", and fuzzy-matching a needle of
@@ -117,6 +124,14 @@ class Overlay(QWidget):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self._marks: list[Mark] = []
+        #: Words shown without a circle: the guard's handover (MASTERSPEC 6),
+        #: where there is deliberately nothing to point at.
+        self._message = ""
+        #: MASTERSPEC 6: visible whenever capture is active, so she is never
+        #: being looked at without being told. Drawn here rather than in its own
+        #: window so it inherits this one's capture exclusion for free -- and so
+        #: there is exactly one window that can leak text into our own OCR.
+        self._looking = False
         self._capture_mode = CaptureMode.UNKNOWN
         self._exclusion_applied = False
         self.cover_primary_screen()
@@ -153,10 +168,35 @@ class Overlay(QWidget):
 
     def show_circle(self, bbox_px: Bbox, instruction: str = "") -> None:
         """Circle one thing. This is what the task loop uses."""
+        self._message = ""
         self.show_marks([Mark(bbox_px=bbox_px, instruction=instruction)])
+
+    def show_message(self, text: str) -> None:
+        """Say something with no circle, for when there is nothing to point at.
+
+        Used by the guard's handover: on a password screen we have deliberately
+        not looked closely enough to know where the box is.
+        """
+        self._message = (text or "").strip()
+        self.show_marks([])
+
+    def set_looking(self, looking: bool) -> None:
+        """Show or hide the "Tiny Me is looking" indicator (MASTERSPEC 6)."""
+        if looking == self._looking:
+            return
+        self._looking = looking
+        if looking and not self.isVisible():
+            self.show()
+            self._apply_capture_exclusion()
+        self.update()
+
+    @property
+    def looking(self) -> bool:
+        return self._looking
 
     def clear(self) -> None:
         self._marks = []
+        self._message = ""
         self.update()
 
     # --- capture exclusion ------------------------------------------------
@@ -249,8 +289,13 @@ class Overlay(QWidget):
     def grab_without_me(self):
         """Capture the screen without the overlay appearing in it.
 
-        Uses whichever path :meth:`verify_capture_exclusion` proved works. Call
-        this instead of ``capture.grab_primary`` whenever the overlay may be up.
+        Uses whichever path :meth:`verify_capture_exclusion` proved works.
+
+        **Main thread only.** The fallback path hides and shows a widget, so the
+        task loop does not use this: ``main.TinyMe`` takes the overlay down on
+        the main thread before handing the capture to a worker (CLAUDE.md rule
+        8). This stays for the one-shot scripts (``scripts/calibrate.py``) and
+        for the exclusion check itself, which both run on the main thread.
         """
         from app import capture as capture_mod
 
@@ -285,8 +330,30 @@ class Overlay(QWidget):
         top = max(SCREEN_MARGIN, min(top, self.height() - height - SCREEN_MARGIN))
         return QRectF(left, top, width, height)
 
+    def _banner_rect(self, text: str, metrics: QFontMetricsF) -> QRectF:
+        """A wide label across the top-centre, for words with no circle."""
+        width = metrics.horizontalAdvance(text) + 2 * LABEL_PAD
+        height = metrics.height() + 2 * LABEL_PAD
+        left = max(SCREEN_MARGIN, (self.width() - width) / 2)
+        return QRectF(left, BANNER_TOP, width, height)
+
+    def _indicator_rect(self, metrics: QFontMetricsF) -> QRectF:
+        """Top-right corner, out of the way of almost every app's toolbar."""
+        width = metrics.horizontalAdvance(LOOKING_TEXT) + 2 * LABEL_PAD
+        height = metrics.height() + 2 * LABEL_PAD
+        return QRectF(self.width() - width - SCREEN_MARGIN, SCREEN_MARGIN,
+                      width, height)
+
+    def _draw_label(self, painter: QPainter, box: QRectF, text: str,
+                    background: QColor) -> None:
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(background)
+        painter.drawRoundedRect(box, 8, 8)
+        painter.setPen(QPen(LABEL_FG))
+        painter.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
+
     def paintEvent(self, event) -> None:  # noqa: N802 - Qt naming
-        if not self._marks:
+        if not self._marks and not self._message and not self._looking:
             return
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -316,11 +383,20 @@ class Overlay(QWidget):
             text = (mark.instruction or "").strip()
             if not text:
                 continue
-            box = self._label_rect(ring, text, metrics)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(LABEL_BG)
-            painter.drawRoundedRect(box, 8, 8)
-            painter.setPen(QPen(LABEL_FG))
-            painter.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
+            self._draw_label(painter, self._label_rect(ring, text, metrics),
+                             text, LABEL_BG)
+
+        if self._message:
+            self._draw_label(painter, self._banner_rect(self._message, metrics),
+                             self._message, LABEL_BG)
+
+        if self._looking:
+            # Smaller than the instruction: it is a reassurance, not a step.
+            small = QFont()
+            small.setPointSize(LOOKING_FONT_PT)
+            painter.setFont(small)
+            small_metrics = QFontMetricsF(small)
+            self._draw_label(painter, self._indicator_rect(small_metrics),
+                             LOOKING_TEXT, LOOKING_BG)
 
         painter.end()

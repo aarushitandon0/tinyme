@@ -78,6 +78,109 @@ This needs a decision before P6, because a 1 Hz watcher poll cannot run a
 
 ---
 
+## UI Automation (P5): measured, and it is cheap
+
+`uiautomation` 2.0.29, taskbar (`Shell_TrayWnd`) + foreground window, depth
+limits 7 / 6, 300 ms budget. Same laptop as the OCR runs above.
+
+Measured **twice**: once on a quiet desktop, and again after the P5 review while
+the machine was loaded (the same run recorded OCR at 22 s, against 9.6-16.7 s
+above). Both sets are below, because the spread is the finding. The quiet column
+is the code **before** the review fixes and the loaded column is **after**, so the
+two columns differ by machine state *and* by code; the element counts are not
+comparable across them (the fixes also drop taskbar text labels).
+
+| stage | quiet | loaded (post-review) |
+|---|---|---|
+| first COM call in a process (`warm_up`, taskbar only) | 232 ms | 374-381 ms |
+| warm `uia.collect`, taskbar + foreground | 74 / 88 / 107 / 118 / 183 ms | 301 / 301 / 301 / 302 / 305 / 305 ms |
+| elements kept | 29 (25 in the taskbar, 18 of them buttons) | 11-27 |
+| full taskbar walk, budget removed | 85 ms, 30 named controls | 206 / 247 / 260 / 288 ms, 26 named |
+| `collect` in a fresh thread (what a QThread step does) | 220-248 ms | 303-304 ms |
+
+So UIA costs **two orders of magnitude less than the OCR pass** either way, which
+makes option 2 in the OCR section above (lean on UIA, treat OCR as the fallback)
+the one to take.
+
+**The budget is the binding constraint under load, and it holds.** Loaded,
+`collect` pins at 301-305 ms against a 300 ms budget: the overshoot is the cost of
+the one control being read when the deadline passes, ~5 ms. Which walk gets cut
+depends on load, and the logs now name it (`UIA <root> walk hit its deadline
+after N controls`): in one loaded run the taskbar finished inside its share and
+the *foreground* walk was cut after 33 controls; in others the taskbar itself ran
+out. On the quiet desktop nothing was cut.
+
+Two things cost real time and are worth knowing:
+
+* **COM's first call** costs 232-381 ms, which alone would blow the budget on her
+  first step. `main.TinyMe.start` and `scripts/dump_elements.py` both call
+  `uia.warm_up()` first. The fresh-thread numbers show the expensive automation
+  client is per-process, not per-thread, so a new QThread per step is fine.
+* **Each property read is a cross-process COM call**, so `_snapshot` reads `Name`
+  first and the control type second, and drops unnamed controls and containers
+  before paying for the remaining three reads. Effect, measured rather than
+  reasoned about: the File Explorer taskbar icon moved from the **17th** control
+  the walk yielded to the **11th**, because unnamed `ImageControl` children and
+  named `Pane`/`Group` containers no longer take slots ahead of it. Earlier in the
+  walk is the whole point - the budget cuts from the end.
+
+I am not quoting a per-COM-read cost. An earlier draft of this section inferred
+"~15 ms per control" from one timing that included the cold first
+`ControlFromHandle`; re-measurement put it near 0.5 ms per read, so the inference
+was wrong and is gone. The walk timings above are what was actually measured.
+
+P5 acceptance, from `python scripts\dump_elements.py --timings`, loaded run after
+the review fixes:
+
+```
+# ocr 54 + uia 11 -> merged 65, kept 65 (limit 80)
+56 | "File Explorer" | uia:Button | bottom-center
+# capture 132 ms | ocr 22227 ms | uia 308 ms
+```
+
+On the quiet run before the fixes the same line was `62 | "File Explorer" |
+uia:Button | bottom-center` with `# ocr 146 + uia 29 -> merged 172, kept 80
+(limit 80)`. The icon survives in every run measured, quiet or loaded, which is
+what scene A's first step needs.
+
+Known gaps, stated plainly:
+
+* Under load the foreground window gets little or nothing, because the taskbar is
+  walked first and may spend the budget down to the 80 ms reserve. That is the
+  deliberate trade: the taskbar icons are the elements OCR *cannot* see, while
+  foreground controls almost always carry text OCR can read.
+* The taskbar Search button and the word "Search" OCR reads inside it survive as
+  two elements: the button's box is much wider than the text, so IoU is ~0.1,
+  under the 0.5 dedupe threshold. A duplicate line in the list, not a wrong
+  circle.
+* `Maximize` and `Restore` both report `IsOffscreen=False` and both survive,
+  though only one is visible. A UIA quirk; the circle is right either way, the
+  word in the instruction may not be.
+* Verbose tray names reach the instruction unshortened ("Volume Speakers
+  (Realtek(R) Audio): 12%"). Not fixed; it would want a trim in `clean_name`.
+
+## region_changed threshold (P6): calibrated
+
+`config.REGION_DIFF_THRESHOLD = 8.0`, a mean absolute pixel difference on a
+0-255 scale over the circled bbox padded by `REGION_PAD_PX = 20`.
+
+| measurement | value |
+|---|---|
+| noise floor: same region, 5 consecutive captures, 3 regions, nothing touched | **0.000 every time** (15 of 15) |
+| one region against different screen content, for scale | 24.2 / 37.6 / 41.6 |
+| all-black against all-white, the arithmetic maximum | 255.0 |
+
+The noise floor is exactly zero: a desktop screenshot has no sensor noise, so any
+non-zero difference is a real pixel change. The threshold therefore is not about
+rejecting noise but about ignoring changes too small to mean anything. A text
+caret blinking in a 240x80 padded region is 2x16 px, 0.17% of the area, so at most
+~0.4 mean difference (arithmetic from the measured geometry, not a separate
+measurement); a clock digit is of the same order. 8.0 clears those by 20x and sits
+3x below the smallest content change measured.
+
+Measured with `scripts/calibrate.py`-style probing on the same 1920x1080 at 125%
+desktop as the rows above.
+
 ## Overlay capture exclusion: verified working
 
 `SetWindowDisplayAffinity(hwnd, 0x11)` succeeds, `GetWindowDisplayAffinity`

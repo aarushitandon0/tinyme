@@ -40,6 +40,11 @@ MAX_ELEMENTS = 80
 #: Longest text we put in a prompt line. Keeps the prompt small on a CPU laptop.
 MAX_TEXT_CHARS = 60
 
+#: MASTERSPEC 5.2 dedupe: an OCR box and a UIA control this overlapped, with
+#: text this similar, are the same thing on screen seen twice.
+SAME_IOU = 0.5
+SAME_TEXT_RATIO = 85.0
+
 
 @dataclass(frozen=True)
 class Monitor:
@@ -140,6 +145,21 @@ def number_elements(elements: Iterable[Element]) -> list[Element]:
     return [replace(element, id=number) for number, element in enumerate(ordered, start=1)]
 
 
+def find_by_id(elements: Iterable[Element], target_id: int) -> Element | None:
+    """Return the element the model chose, or None.
+
+    The bbox that comes back is what gets circled, so this is the hinge between
+    the model's answer and what she sees. ``target_id`` 0 is StepPlan's "nothing
+    chosen" sentinel and never resolves to an element; numbering starts at 1.
+    """
+    if target_id <= 0:
+        return None
+    for element in elements:
+        if element.id == target_id:
+            return element
+    return None
+
+
 def _contains(rect: Bbox | None, bbox: Bbox) -> bool:
     """True if the bbox's centre lies inside the rect."""
     if rect is None:
@@ -181,6 +201,88 @@ def cap_elements(
     )
     kept = sorted(ranked[:limit], key=lambda pair: pair[0])
     return [element for _, element in kept]
+
+
+def iou(a: Bbox, b: Bbox) -> float:
+    """Intersection over union of two boxes. 0.0 if either has no area.
+
+    Used only for dedupe (:func:`merge_elements`). Boxes that merely touch
+    return 0.0, so a label sitting flush against a button is not swallowed by it.
+    """
+    a_left, a_top, a_right, a_bottom = a
+    b_left, b_top, b_right, b_bottom = b
+    width = min(a_right, b_right) - max(a_left, b_left)
+    height = min(a_bottom, b_bottom) - max(a_top, b_top)
+    if width <= 0 or height <= 0:
+        return 0.0
+    intersection = width * height
+    area_a = max(0.0, a_right - a_left) * max(0.0, a_bottom - a_top)
+    area_b = max(0.0, b_right - b_left) * max(0.0, b_bottom - b_top)
+    union = area_a + area_b - intersection
+    if union <= 0:
+        return 0.0
+    return intersection / union
+
+
+def merge_elements(
+    ocr_elements: Iterable[Element],
+    uia_elements: Iterable[Element],
+    iou_threshold: float = SAME_IOU,
+    text_ratio: float = SAME_TEXT_RATIO,
+) -> list[Element]:
+    """Merge the two sources into one list, dropping duplicates (MASTERSPEC 5.2).
+
+    A pair counts as one thing when IoU > ``iou_threshold`` *and* the fuzzy text
+    ratio is >= ``text_ratio``. The UIA element survives, because its role is what
+    tells the model the thing is clickable.
+
+    Matching is greedy: each UIA element takes the OCR box it overlaps most, and
+    an OCR box is claimed once. Deterministic, because ties keep the earlier OCR
+    index and the outer loop follows input order. It is not globally optimal, but
+    two OCR boxes can only both clear IoU > 0.5 against one UIA box if they also
+    heavily overlap each other, which OCR does not produce.
+
+    On the P5 prompt's "OCR for text if UIA name empty": that case cannot arise.
+    UIA elements are named by construction - ``uia._snapshot`` drops a control
+    before it is built if the name is empty or icon-font glyphs, and
+    ``uia.elements_from_infos`` applies the same rule again - so the branch would
+    have been dead code, and a branch that grafts any overlapping OCR string onto
+    a control as its name is not something to leave armed and untested for
+    whoever relaxes that rule later. An icon with a separate text label keeps both
+    elements: the button with its role, the label as ``ocr:text``.
+
+    Returns:
+        Unnumbered elements (``id`` left as it came) in reading order. Caller
+        runs ``cap_elements`` then ``number_elements``. Inputs are not mutated.
+    """
+    from rapidfuzz import fuzz  # Imported here; elements.py stays import-cheap.
+
+    kept_uia = list(uia_elements)
+    ocr_list = list(ocr_elements)
+    matched_ocr: set[int] = set()
+
+    for uia_element in kept_uia:
+        best: tuple[float, int] | None = None
+        for ocr_index, ocr_element in enumerate(ocr_list):
+            if ocr_index in matched_ocr:
+                continue
+            overlap = iou(uia_element.bbox_px, ocr_element.bbox_px)
+            if overlap <= iou_threshold:
+                continue
+            ratio = fuzz.ratio(uia_element.text.casefold(),
+                               ocr_element.text.casefold())
+            if ratio < text_ratio:
+                continue
+            if best is None or overlap > best[0]:
+                best = (overlap, ocr_index)
+        if best is not None:
+            matched_ocr.add(best[1])
+
+    merged = list(kept_uia)
+    merged.extend(
+        element for index, element in enumerate(ocr_list) if index not in matched_ocr
+    )
+    return _reading_order(merged)
 
 
 def to_logical(bbox: Bbox, dpr: float) -> Bbox:

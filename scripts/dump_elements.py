@@ -16,8 +16,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app import capture, ocr  # noqa: E402
-from app.elements import MAX_ELEMENTS, cap_elements, number_elements, render_for_model  # noqa: E402
+from app import capture, ocr, uia  # noqa: E402
+from app.elements import (  # noqa: E402
+    MAX_ELEMENTS,
+    cap_elements,
+    merge_elements,
+    number_elements,
+    render_for_model,
+)
 
 
 def main() -> int:
@@ -26,6 +32,8 @@ def main() -> int:
                         help=f"max elements to keep (default {MAX_ELEMENTS})")
     parser.add_argument("--timings", action="store_true", help="print stage timings")
     parser.add_argument("--debug", action="store_true", help="verbose logging")
+    parser.add_argument("--no-uia", action="store_true",
+                        help="OCR only, to see what UI Automation adds")
     args = parser.parse_args()
 
     # The Windows console defaults to cp1252, and OCR regularly returns
@@ -42,26 +50,40 @@ def main() -> int:
     )
 
     shot = capture.grab_primary()
-    raw, ocr_ms = ocr.read_screen(shot.image, shot.monitor)
+    ocr_found, ocr_ms = ocr.read_screen(shot.image, shot.monitor)
 
+    if args.no_uia:
+        uia_found, uia_ms = [], 0.0
+    else:
+        # COM's first call costs ~450 ms, which would eat the whole 300 ms
+        # budget and make this dump look worse than a running app, where
+        # main.py warms up at startup.
+        uia.warm_up()
+        uia_found, uia_ms = uia.collect(shot.monitor)
+
+    merged = merge_elements(ocr_found, uia_found)
     taskbar = capture.taskbar_rect()
     foreground = capture.foreground_rect()
-    kept = cap_elements(raw, limit=args.limit, taskbar_rect=taskbar,
+    kept = cap_elements(merged, limit=args.limit, taskbar_rect=taskbar,
                         foreground_rect=foreground)
     elements = number_elements(kept)
 
     width, height = shot.size_px
     print(f"# monitor {width}x{height} physical px at "
           f"({shot.monitor.left}, {shot.monitor.top})")
-    print(f"# ocr found {len(raw)}, kept {len(elements)} (limit {args.limit})")
+    print(f"# ocr {len(ocr_found)} + uia {len(uia_found)} -> merged "
+          f"{len(merged)}, kept {len(elements)} (limit {args.limit})")
     if taskbar is None:
-        print("# taskbar not found; its icons will be missing until P5 adds UIA")
+        print("# taskbar not found; its icons will be missing from this list")
+    elif not uia_found and not args.no_uia:
+        print("# UI Automation returned nothing; icon-only buttons have no names")
     print()
     print(render_for_model(elements) or "(no elements)")
 
     if args.timings:
         print()
-        print(f"# capture {shot.elapsed_ms:.0f} ms | ocr {ocr_ms:.0f} ms")
+        print(f"# capture {shot.elapsed_ms:.0f} ms | ocr {ocr_ms:.0f} ms | "
+              f"uia {uia_ms:.0f} ms")
     return 0
 
 
