@@ -19,7 +19,7 @@ Tiny Me is a small Windows app for one real person (my mom). She presses one hot
 | **Gemma** | $200 | Core | Gemma 4 (via Ollama, local) picks the numbered element, writes the instruction, and chooses the success check. Also Gemma 4's vision mode is one of the baselines in the eval. |
 | **Entire** | $100 | Nearly free | `entire enable --agent claude-code` in the repo from the first hour. Sessions are captured as checkpoints on the `entire/checkpoints/v1` branch. Link the sessions in the post and use them to explain *why* key code exists. |
 | **Sentry Agent Tracing** | $100 | 1 to 2 hours | Manual `gen_ai.*` spans around each guide step: latency per stage, tokens, failures, recoveries. **Dev/eval mode only** (see §8). |
-| **Tinker** | $200 | Stretch, Sunday | LoRA fine-tune **Qwen3-4B-Instruct-2507** (Tinker does **not** list Gemma) to pick the correct box. Compare against untuned Qwen and Gemma 4 on a held-out app. |
+| **Tinker** | $200 | Stretch, Sunday | LoRA fine-tune **`Qwen/Qwen3.5-4B`** (Tinker does **not** list Gemma) to pick the correct box. Compare against untuned Qwen and Gemma 4 on a held-out app. See `finetune/DECISION.md` for where this actually stands. |
 
 **Not entering:** ElevenLabs (voice was cut; optional 15-minute demo narration only if everything else is done), GitHub Copilot, Render, DigitalOcean, TabPFN, Arduino, Backboard, Mastra, MongoDB, SerpApi, Temporal, Tiger Data. They would be bolted on, and cloud hosting contradicts the "nothing leaves her laptop" story.
 
@@ -27,7 +27,7 @@ Tiny Me is a small Windows app for one real person (my mom). She presses one hot
 
 ### Verified facts this plan relies on (re-check Friday night)
 - **Gemma 4** (released 2 Apr 2026) is on Ollama as `gemma4` with edge sizes `e2b` and `e4b` (default) plus larger sizes. Edge sizes accept images. Confirm exact tags on ollama.com/library/gemma4 and update Ollama to the latest version (early releases had tool-calling bugs).
-- **Tinker model lineup** (tinker-docs.thinkingmachines.ai/model-lineup): Qwen3, Qwen3-VL, Llama 3.x, gpt-oss, DeepSeek-V3.1, Kimi. **No Gemma.** Smallest instruction model: `Qwen/Qwen3-4B-Instruct-2507`. Llama-3.2-1B/3B are listed as **Base** only.
+- **Tinker model lineup** (tinker-docs.thinkingmachines.ai/tinker/models/) — **re-checked 4 Oct 2026, and it had moved.** Qwen3.x, Nemotron, GLM-5.3, Kimi-K2.6, gpt-oss, DeepSeek-V3.1, Inkling. **Still no Gemma.** The id this spec first named, `Qwen/Qwen3-4B-Instruct-2507`, **no longer exists**; the smallest instruction-tuned model is now **`Qwen/Qwen3.5-4B`** (dense, 64K context) at **$0.737 / M training tokens**. LoRA weights **can** be exported (`build_lora_adapter`, `download`, `publish_to_hf_hub`). LoRA only, no full fine-tune.
 - **Entire CLI** hooks into git and supported agents (including Claude Code), stores transcripts on a separate `entire/checkpoints/v1` branch, and pushes them with your code.
 - **Sentry** Python agent tracing: spans with `op="gen_ai.invoke_agent"` (container), `gen_ai.chat` (model call), `gen_ai.execute_tool`; `gen_ai.operation.name` is required; span attributes must be primitive types.
 
@@ -172,7 +172,7 @@ Hotkey, prompt box, capture, OCR + UIA element list, Gemma picks an element, cir
 - Sentry spans (dev mode).
 
 **Tier 3 (only if the rest is solid)**
-- Tinker fine-tune of Qwen3-4B-Instruct-2507 for element picking.
+- Tinker fine-tune of `Qwen/Qwen3.5-4B` for element picking.
 - Saved cheat-sheet cards.
 
 **Cut line:** if Saturday ends without Scene A working multi-step, drop everything except Tier 1 + eval.
@@ -196,10 +196,18 @@ Token counts come from Ollama's response (`prompt_eval_count`, `eval_count`). Se
 
 ## 9. Tinker plan (Tier 3)
 
+> **Status, 4 Oct 2026:** built and tested, not run. `finetune/DECISION.md` is the
+> record. Two blockers: only File Explorer is labelled, so there is no held-out
+> *app* to test on, and 20 labelled rows give a 6-example test split where one
+> example is 17 points. Also: the labels carry `target_id` only, so a model
+> trained on this is a **picker**, not a drop-in brain — its `success_check` is
+> templated and would regress MASTERSPEC 5.4's cheap checks. Cost is not the
+> blocker (~$0.12 for 3 epochs).
+
 - **Task:** given goal + history + element list → correct `target_id` (or `cannot_see_it`).
 - **Data:** ~40 labeled screenshots × 2–4 goals each, frozen element lists stored as JSON (no images needed for training). Augment by shuffling element IDs and paraphrasing goals. **Split by app** (hold out one whole app) so test is honest.
-- **Model:** `Qwen/Qwen3-4B-Instruct-2507`, LoRA, supervised fine-tuning via the Tinker cookbook. Check current pricing and credits first.
-- **Compare:** untuned Qwen3-4B vs tuned Qwen3-4B vs Gemma 4 e2b/e4b, on the held-out app: correct-element rate, JSON validity, latency.
+- **Model:** `Qwen/Qwen3.5-4B`, LoRA, supervised fine-tuning via the Tinker cookbook. Pricing checked 4 Oct 2026: $0.737 / M training tokens, so a 3-epoch run on this dataset is cents, not dollars. Re-check before quoting.
+- **Compare:** untuned vs tuned Qwen vs Gemma 4 e2b/e4b, on the held-out app: correct-element rate, JSON validity, latency. The rows are `tinker_base` and `tinker_tuned` in `eval/run_eval.py`, generated, never typed. Tinker latencies are a network round trip and are not comparable to the local rows.
 - **Running locally:** if Tinker lets you download the LoRA weights, merge → GGUF → `ollama create tinyme-picker`. If that path doesn't work in time, report accuracy from Tinker's sampler and say local deployment is future work. Do not claim local speed you didn't measure.
 - **Story:** "Open weights let me swap the brain. Gemma stays the default; the tuned picker is a drop-in." That is the open-innovation argument in one line.
 
@@ -268,6 +276,6 @@ Titles: "My mom kept calling me at 9 p.m., so I built a tiny me that lives on he
 | DPI mismatch → circle in the wrong place | Calibration test on day 1 at two scaling levels. |
 | Overlay text read by OCR | Capture exclusion, verified. |
 | Ticket sites forbid automation | Local mock site, said openly. |
-| Tinker can't train Gemma | Fine-tune Qwen3-4B; framed as model swap. |
+| Tinker can't train Gemma | Fine-tune `Qwen/Qwen3.5-4B`; framed as model swap. |
 | Telemetry contradicts privacy story | Off by default, dev-only, numbers only. |
 | Rules | Repo created inside window; note any post-deadline commits in README; tags; 18+. |
