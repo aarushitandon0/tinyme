@@ -56,7 +56,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QApplication, QWidget
 
-from app import theme
+from app import pixel, theme
 from app.elements import Bbox, to_logical
 
 log = logging.getLogger(__name__)
@@ -83,6 +83,23 @@ LABEL_RADIUS = 12
 #: Height of the little triangle that points the label at its circle.
 LABEL_POINTER = 7
 SCREEN_MARGIN = 8
+
+#: Tiny Me herself, standing at the left-hand end of the callout (design sheet
+#: panel 5). She is drawn taller than the card and overlapping its left edge,
+#: so she reads as leaning in to point at the step rather than as a picture
+#: pasted inside a box.
+MASCOT = "girl"
+#: Her height, as a multiple of the card's. Integer scaling floors this to the
+#: nearest whole pixel per art pixel, so the drawn figure is usually a little
+#: shorter than asked for -- the number is a target, not a promise.
+MASCOT_SCALE = 2.1
+#: How much of her sits *outside* the card's left edge, as a fraction of her
+#: width; the rest overlaps the card and the words are inset clear of it.
+MASCOT_OVERHANG = 0.62
+#: Below this card width she is dropped. A callout clamped into a narrow strip
+#: of screen needs its words more than it needs a mascot, and she must never
+#: be the reason an instruction wraps or elides.
+MASCOT_MIN_BOX = 150.0
 
 #: The ring breathes rather than sitting still: on a busy screen a static
 #: outline reads as part of the app underneath, and a moving one does not.
@@ -500,13 +517,21 @@ class Overlay(QWidget):
 
     # --- painting ---------------------------------------------------------
 
-    def _label_rect(self, ring: QRectF, text: str, metrics: QFontMetricsF) -> tuple[QRectF, bool]:
+    def _label_rect(self, ring: QRectF, text: str, metrics: QFontMetricsF, *,
+                    extra_width: float = 0.0,
+                    left_reserve: float = 0.0) -> tuple[QRectF, bool]:
         """Place the label near the ring but always fully on screen.
 
         Returns the box and whether it ended up *below* the ring, which is what
         decides which way its pointer faces.
+
+        ``extra_width`` widens the card for something drawn inside it on the
+        left (the mascot's overlapping half), and ``left_reserve`` keeps the
+        card that far off the left edge of the screen so the rest of her has
+        somewhere to stand. Both default to zero, so a callout with no mascot
+        is laid out exactly as it was before.
         """
-        width = metrics.horizontalAdvance(text) + 2 * LABEL_PAD
+        width = metrics.horizontalAdvance(text) + 2 * LABEL_PAD + extra_width
         height = metrics.height() + 2 * LABEL_PAD
         # Prefer below the ring; flip above when there is no room.
         below = True
@@ -516,9 +541,55 @@ class Overlay(QWidget):
             top = ring.top() - LABEL_GAP - height
         left = ring.center().x() - width / 2
 
-        left = max(SCREEN_MARGIN, min(left, self.width() - width - SCREEN_MARGIN))
+        low = SCREEN_MARGIN + left_reserve
+        high = self.width() - width - SCREEN_MARGIN
+        # On a screen too narrow to honour the reservation, the words win.
+        left = max(min(low, max(high, SCREEN_MARGIN)), min(left, high))
+        left = max(SCREEN_MARGIN, left)
         top = max(SCREEN_MARGIN, min(top, self.height() - height - SCREEN_MARGIN))
         return QRectF(left, top, width, height), below
+
+    @staticmethod
+    def _mascot_room(card_height: float) -> tuple[float, float]:
+        """``(inside, outside)`` — the room a mascot beside a card this tall wants.
+
+        Asked *before* the card is placed, because both halves change where it
+        can go: the inside half widens it, the outside half pushes it right.
+        """
+        cols, rows = pixel.size(MASCOT)
+        if not cols or not rows:
+            return (0.0, 0.0)
+        width = card_height * MASCOT_SCALE * cols / rows
+        return (width * (1.0 - MASCOT_OVERHANG), width * MASCOT_OVERHANG)
+
+    @staticmethod
+    def _mascot_box(card: QRectF) -> QRectF:
+        """Where she actually stands beside ``card``, or empty if she cannot.
+
+        She is dropped rather than squeezed. Every reason to drop her is a
+        screen edge she would otherwise be sliced by, and half a mascot is
+        worse than none -- the callout on its own is the design we had.
+        """
+        cols, rows = pixel.size(MASCOT)
+        if not cols or not rows or card.width() < MASCOT_MIN_BOX:
+            return QRectF()
+        # She stands on the card's baseline, so the top is what can run off.
+        height = min(card.height() * MASCOT_SCALE, card.bottom() - SCREEN_MARGIN)
+        width = height * cols / rows
+        left = card.left() - width * MASCOT_OVERHANG
+        if left < SCREEN_MARGIN:
+            return QRectF()
+        box = pixel.fit(MASCOT, QRectF(left, card.bottom() - height, width, height))
+        # The height test belongs *after* the fit, not before it. Integer
+        # scaling floors the figure, and near the top of the screen that floor
+        # can land her shorter than the card she is supposed to be leaning
+        # over -- which reads as a stray sticker rather than as a character.
+        if box.height() < card.height():
+            return QRectF()
+        # ``fit`` centres the figure in the rect it was offered, leaving her
+        # hovering a few pixels above the card. She is meant to be standing on
+        # it, so drop her back onto the baseline.
+        return box.translated(0.0, card.bottom() - box.bottom())
 
     def _banner_rect(self, text: str, metrics: QFontMetricsF) -> QRectF:
         """A wide label across the top-centre, for words with no circle."""
@@ -718,6 +789,8 @@ class Overlay(QWidget):
         #: it. A target low on the screen puts its callout exactly where the
         #: counter wants to sit.
         occupied: list[QRectF] = []
+        #: Set once Tiny Me has been drawn; she appears beside one callout.
+        mascot_spent = False
 
         for mark in self._marks:
             shape = mark.shape or choose_shape(mark.bbox_px, dpr)
@@ -757,13 +830,35 @@ class Overlay(QWidget):
             text = (mark.instruction or "").strip()
             if not text:
                 continue
-            box, below = self._label_rect(ring, text, metrics)
+
+            # Only the first instruction on screen gets her. Two marks means
+            # two callouts, and two Tiny Mes reads as a glitch rather than as
+            # a character.
+            card_height = metrics.height() + 2 * LABEL_PAD
+            inside, outside = ((0.0, 0.0) if mascot_spent
+                               else self._mascot_room(card_height))
+            box, below = self._label_rect(ring, text, metrics,
+                                          extra_width=inside,
+                                          left_reserve=outside)
+            mascot = QRectF() if mascot_spent else self._mascot_box(box)
+            if mascot.isEmpty() and inside:
+                # She did not fit after all; lay the card out as if she had
+                # never been asked for, rather than leaving her gap in it.
+                inside = 0.0
+                box, below = self._label_rect(ring, text, metrics)
+
             anchor = QPointF(ring.center().x(),
                              ring.bottom() if below else ring.top())
             if not self._tail_reaches(box, anchor, below):
                 self._draw_leader(painter, box, anchor, below, appear)
             self._draw_label(painter, box, text, LABEL_BG,
-                             point_at=anchor, below=below, opacity=appear)
+                             point_at=anchor, below=below, opacity=appear,
+                             left_inset=inside)
+            if not mascot.isEmpty():
+                # After the card, so she overlaps it rather than hides under it.
+                pixel.paint(painter, MASCOT, mascot, opacity=appear)
+                occupied.append(mascot)
+                mascot_spent = True
             occupied.append(box)
             occupied.append(ring)
 

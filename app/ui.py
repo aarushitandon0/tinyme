@@ -54,7 +54,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app import config, icons, theme
+from app import config, icons, pixel, theme
 from app.widgets import (
     ActionCard,
     Banner,
@@ -461,16 +461,28 @@ class Hero(QWidget):
         painter.restore()
 
     def _draw_art(self, painter: QPainter, box: QRectF) -> None:
-        """A sage blob with a sprout in it, and a pencilled aside."""
+        """Tiny Me at her desk with her cat, and a pencilled aside.
+
+        Painted in three passes so she reads as sitting *behind* the desk
+        rather than on it: blob, then the two of them, then the desk over
+        their laps.
+        """
         blob = QRectF(box.left() + 10, box.top() + 6, 118, 96)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(theme.qcolor(theme.SAGE_BG, 0.75))
         painter.drawRoundedRect(blob, 34, 30)
+
+        desk = blob.adjusted(16, 54, -18, -8)
+        girl = pixel.paint(painter, "girl",
+                           QRectF(blob.left() + 20, blob.top() + 10, 46, 60))
+        # Flipped, so the cat faces her rather than away from her.
+        pixel.paint(painter, "cat",
+                    QRectF(girl.right() + 2, desk.top() - 28, 32, 32),
+                    flip=True)
+
+        painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(theme.qcolor(theme.TAN, 0.35))
-        painter.drawRoundedRect(blob.adjusted(16, 54, -18, -8), 14, 12)
-        icons.paint(painter, "leaf",
-                    QRectF(blob.center().x() - 24, blob.top() + 12, 48, 48),
-                    theme.qcolor(theme.PRIMARY), width=1.7)
+        painter.drawRoundedRect(desk, 14, 12)
         icons.paint(painter, "sparkle",
                     QRectF(blob.right() - 20, blob.top() + 4, 16, 16),
                     theme.qcolor(theme.HIGHLIGHT_WARM), width=1.4)

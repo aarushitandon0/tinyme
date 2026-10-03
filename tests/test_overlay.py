@@ -8,6 +8,8 @@ hide->capture->show path for the whole session.
 
 Only the pure matcher is tested here; constructing the widget needs a display.
 """
+import pytest
+
 from app.elements import Element
 from app.overlay import EXCLUSION_PROBE, probe_leaked
 
@@ -204,3 +206,96 @@ class TestLiftClear:
         # Nothing to climb to: better half-covered than off the top edge.
         wall = QRectF(0, 0, 1920, 1080)
         assert lift(self.counter, [wall]) == self.counter
+
+
+# --- Tiny Me standing beside the callout ------------------------------------
+# She overlaps the card's left edge, so she costs the card room on two sides:
+# ``_mascot_room`` is asked for that budget *before* the card is placed, and
+# ``_mascot_box`` says where she ends up once it has been. Both are pure
+# geometry, so no display is needed. The rule they enforce together is that she
+# is dropped, never sliced -- half a mascot is worse than none.
+
+from app import pixel  # noqa: E402
+from app.overlay import (  # noqa: E402
+    MASCOT,
+    MASCOT_MIN_BOX,
+    MASCOT_OVERHANG,
+    MASCOT_SCALE,
+    SCREEN_MARGIN,
+)
+
+room = Overlay._mascot_room
+mascot_box = Overlay._mascot_box
+
+
+class TestMascotRoom:
+    def test_the_two_halves_add_up_to_her_whole_width(self):
+        inside, outside = room(44.0)
+        cols, rows = pixel.size(MASCOT)
+        assert inside + outside == pytest.approx(44.0 * MASCOT_SCALE * cols / rows)
+
+    def test_the_overhang_is_the_part_outside_the_card(self):
+        inside, outside = room(44.0)
+        assert outside / (inside + outside) == pytest.approx(MASCOT_OVERHANG)
+
+    def test_a_taller_card_wants_a_bigger_mascot(self):
+        assert sum(room(60.0)) > sum(room(44.0))
+
+    def test_an_unknown_mascot_costs_nothing(self, monkeypatch):
+        # If the sprite were ever renamed out from under the overlay, the
+        # callout must lay out exactly as it did before she existed.
+        monkeypatch.setattr("app.overlay.MASCOT", "penguin")
+        assert Overlay._mascot_room(44.0) == (0.0, 0.0)
+
+
+class TestMascotBox:
+    # A roomy card in the middle of a 1920x1080 screen: she fits easily.
+    card = QRectF(700, 500, 320, 44)
+
+    def test_she_stands_on_the_cards_baseline(self):
+        box = mascot_box(self.card)
+        assert box.bottom() == pytest.approx(self.card.bottom())
+
+    def test_she_is_taller_than_the_card_so_she_leans_over_it(self):
+        assert mascot_box(self.card).height() > self.card.height()
+
+    def test_she_overlaps_the_cards_left_edge(self):
+        box = mascot_box(self.card)
+        assert box.left() < self.card.left() < box.right()
+
+    def test_her_width_matches_the_room_that_was_budgeted_for_her(self):
+        # If these drifted apart the words would be inset by the wrong amount
+        # and sit either under her or in a gap beside her.
+        box = mascot_box(self.card)
+        inside, outside = room(self.card.height())
+        assert box.width() <= inside + outside + 1.0
+
+    def test_her_pixels_are_square(self):
+        box = mascot_box(self.card)
+        cols, rows = pixel.size(MASCOT)
+        assert box.width() / cols == pytest.approx(box.height() / rows)
+
+    def test_a_narrow_card_drops_her(self):
+        narrow = QRectF(700, 500, MASCOT_MIN_BOX - 1, 44)
+        assert mascot_box(narrow).isEmpty()
+
+    def test_a_card_against_the_left_edge_drops_her(self):
+        # There is nowhere for her to stand, and standing her on top of the
+        # words instead would be worse than not drawing her.
+        pinned = QRectF(SCREEN_MARGIN, 500, 320, 44)
+        assert mascot_box(pinned).isEmpty()
+
+    def test_a_card_near_the_top_of_the_screen_drops_her(self):
+        # She is taller than the card, so a card this high would slice her
+        # head off at the top of the screen.
+        high = QRectF(700, SCREEN_MARGIN + 2, 320, 44)
+        assert mascot_box(high).isEmpty()
+
+    def test_she_never_runs_off_the_top_of_the_screen(self):
+        for top in range(SCREEN_MARGIN, 400, 7):
+            box = mascot_box(QRectF(700, top, 320, 44))
+            assert box.isEmpty() or box.top() >= SCREEN_MARGIN
+
+    def test_an_unknown_mascot_is_simply_not_drawn(self, monkeypatch):
+        monkeypatch.setattr("app.overlay.MASCOT", "penguin")
+        assert Overlay._mascot_box(self.card).isEmpty()
