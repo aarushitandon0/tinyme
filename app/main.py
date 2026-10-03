@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import threading
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable, Sequence
@@ -613,11 +614,35 @@ class TinyMe(QObject):
         # COM's first call costs ~450 ms. Pay it now, not inside the 300 ms
         # budget of her first step.
         uia_mod.warm_up()
+        self._warm_model()
         if not self.hotkeys.start():
             self.window.set_status(
                 "Hotkeys are unavailable, so this window stays open."
             )
         self.window.ask()
+
+    def _warm_model(self) -> None:
+        """Start Ollama loading the model, without blocking the window.
+
+        ``uia.warm_up`` above is ~450 ms and is simply called. This one is
+        **31.8 s** on a cold server (notes/bench.md), so calling it here would
+        freeze the prompt window for half a minute before she can type.
+
+        A plain daemon thread rather than the ``Job``/``QThread`` machinery:
+        there is no result to deliver, nothing here touches a widget
+        (CLAUDE.md rule 8), and ``_run`` would set ``_thread`` and so make
+        ``_busy`` true, locking her out of starting a task for the whole load.
+        Daemon so that quitting during the load does not hang on it.
+
+        If she types faster than the load, nothing breaks. Ollama serialises
+        the two requests, and her step waits for the same load it would have
+        paid for anyway.
+        """
+        threading.Thread(
+            target=brain_mod.warm_up,
+            name="tinyme-model-warmup",
+            daemon=True,
+        ).start()
 
     def stop_everything(self) -> None:
         """Ctrl+Alt+P, or the Stop button. Everything goes quiet (MASTERSPEC 6).
@@ -765,6 +790,7 @@ class TinyMe(QObject):
     def _handover_done(self) -> None:
         """She has moved on. Take the circle down. Main thread."""
         self.overlay.clear()
+        self.window.resume_from_handover()
         self.window.set_status("Thank you - carrying on.")
 
     def _booking_done(self, outcome: actions_mod.BookingOutcome) -> None:

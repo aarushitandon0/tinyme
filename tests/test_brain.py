@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 import pytest
 
+from app import brain as brain_mod
 from app import config
 from app.brain import (
     MAX_TEACH_NOTES,
@@ -386,3 +387,40 @@ class TestFallbackPlan:
     def test_truncates_a_long_hint_to_the_schema_limit(self):
         plan = fallback_plan("y" * 200)
         assert len(plan.hint_if_missing) <= 90
+
+
+# --- warm-up (the cold-load defect) ----------------------------------------
+
+
+class TestWarmUp:
+    """Ollama's first call pays the model load.
+
+    Measured on the dev laptop (notes/bench.md): loading ``gemma4:e2b`` costs
+    31.8 s, against a warm call's 0.9 s of overhead. Added to the ~26 s a real
+    80-element step takes, the first call of a session overran
+    ``config.MODEL_TIMEOUT_S`` and ``plan_step`` correctly turned the read
+    timeout into a fallback -- so her very first step was a generic hint
+    instead of a circle, every session.
+
+    The fix mirrors ``uia.warm_up``: pay the cost at startup instead.
+    """
+
+    def test_asks_the_model_for_one_token_and_keeps_it_resident(self):
+        client = FakeClient(FakeResponse(content=""))
+
+        brain_mod.warm_up(client=client, model="gemma4:e2b")
+
+        assert len(client.calls) == 1
+        call = client.calls[0]
+        assert call["model"] == "gemma4:e2b"
+        # keep_alive is the whole point: the load must outlive this call.
+        assert call["keep_alive"] == config.KEEP_ALIVE
+        # One token. The reply is thrown away; only the load matters.
+        assert call["options"]["num_predict"] == 1
+
+    def test_a_dead_server_does_not_stop_the_app_starting(self):
+        client = ExplodingClient(ConnectionError("no server"))
+
+        brain_mod.warm_up(client=client)  # must not raise
+
+        assert len(client.calls) == 1

@@ -1,9 +1,60 @@
+# --- Project docs (internal planning, not for public repo) ---
+PROMPTS.md
+PROJECTPLAN.md
+CLAUDE.md
+MASTERSPEC.md
+
+# --- Python ---
 .venv/
+venv/
+env/
+ENV/
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+*.egg
+build/
+dist/
+.eggs/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Env / secrets ---
 .env
+.env.*
+!.env.example
+
+# --- Node (in case of any JS tooling) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Project-specific ---
 eval/screenshots/*.png
 docs/*.png
 

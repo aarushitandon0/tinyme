@@ -50,6 +50,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QGraphicsOpacityEffect,
     QGridLayout,
+    QHBoxLayout,
     QLayout,
     QLineEdit,
     QStackedWidget,
@@ -503,6 +504,134 @@ class Chip(Surface):
         draw_text(painter, body, self._text, theme.font(9.8),
                   theme.mix(theme.INK_SOFT, theme.PRIMARY, h),
                   Qt.AlignmentFlag.AlignCenter)
+
+
+class FilterTab(Surface):
+    """One tab in a :class:`FilterTabs` row. The pill is drawn by the row."""
+
+    def __init__(self, text: str, parent: QWidget | None = None) -> None:
+        super().__init__(parent, lift=0.0)
+        self._text = text
+        self._selected = 0.0
+        font = theme.font(9.8, QFont.Weight.DemiBold)
+        width = QFontMetricsF(font).horizontalAdvance(text) + 32
+        self.setFixedSize(QSize(round(width), 32))
+
+    @property
+    def label(self) -> str:
+        return self._text
+
+    def _get_selected(self) -> float:
+        return self._selected
+
+    def _set_selected(self, value: float) -> None:
+        self._selected = value
+        self.update()
+
+    selected = Property(float, _get_selected, _set_selected)
+
+    def paint_content(self, painter: QPainter, rect: QRectF) -> None:
+        s, h = self._selected, self._hover
+        body = rect.adjusted(0.5, 0.5, -0.5, -0.5)
+        # Unselected tabs carry their own hairline; the selected one is the
+        # travelling pill behind, so it must not draw a border over it.
+        if s < 0.99:
+            painter.setOpacity(1.0 - s)
+            painter.setPen(QPen(theme.mix(theme.LINE, theme.SAGE_LINE, h), 1.0))
+            painter.setBrush(theme.mix(theme.PAPER, "#FFFFFF", h))
+            painter.drawRoundedRect(body, body.height() / 2, body.height() / 2)
+            painter.setOpacity(1.0)
+
+        weight = QFont.Weight.DemiBold if s > 0.5 else QFont.Weight.Normal
+        ink = theme.mix(theme.mix(theme.INK_SOFT, theme.PRIMARY, h),
+                        theme.CREAM, s)
+        draw_text(painter, body, self._text, theme.font(9.8, weight), ink,
+                  Qt.AlignmentFlag.AlignCenter)
+
+
+class FilterTabs(QWidget):
+    """The All / Files / Websites row above a list (design sheet, panel 4).
+
+    Like :class:`Sidebar`, the selection is one pill that *travels* rather than
+    several that blink on and off, so the change reads as a move instead of a
+    flicker. The pill is painted here, behind the tabs, which is why
+    :class:`FilterTab` fades its own background out as it is selected.
+    """
+
+    changed = Signal(int)
+
+    def __init__(self, labels: list[str], parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._tabs: list[FilterTab] = []
+        self._current = 0
+        self._pill_x = 0.0
+        self.setFixedHeight(32)
+
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(6)
+        for index, label in enumerate(labels):
+            tab = FilterTab(label, self)
+            tab.clicked.connect(lambda i=index: self.select(i))
+            row.addWidget(tab)
+            self._tabs.append(tab)
+        row.addStretch(1)
+
+        if self._tabs:
+            self._tabs[0]._set_selected(1.0)
+
+    @property
+    def current(self) -> int:
+        return self._current
+
+    @property
+    def current_label(self) -> str:
+        return self._tabs[self._current].label if self._tabs else ""
+
+    def _get_pill_x(self) -> float:
+        return self._pill_x
+
+    def _set_pill_x(self, value: float) -> None:
+        self._pill_x = value
+        self.update()
+
+    pill_x = Property(float, _get_pill_x, _set_pill_x)
+
+    def select(self, index: int, *, announce: bool = True) -> None:
+        if not (0 <= index < len(self._tabs)):
+            return
+        previous = self._current
+        self._current = index
+        for i, tab in enumerate(self._tabs):
+            animate(tab, b"selected", 1.0 if i == index else 0.0,
+                    theme.MEDIUM, theme.EASE_OUT, store="_anim_selected")
+        target = float(self._tabs[index].x())
+        if previous == index:
+            self._set_pill_x(target)
+        else:
+            animate(self, b"pill_x", target, theme.MEDIUM + 40, theme.EASE_PANEL)
+        if announce:
+            self.changed.emit(index)
+
+    def showEvent(self, event) -> None:  # noqa: N802 - Qt naming
+        super().showEvent(event)
+        # Geometry is only real once the row has been laid out.
+        if self._tabs:
+            self._set_pill_x(float(self._tabs[self._current].x()))
+
+    def paintEvent(self, event) -> None:  # noqa: N802 - Qt naming
+        if not self._tabs:
+            return
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        tab = self._tabs[self._current]
+        pill = QRectF(self._pill_x, 0.5, tab.width(), self.height() - 1.0)
+        soft_shadow(painter, pill, pill.height() / 2, spread=3.0, alpha=0.18,
+                    colour=QColor(theme.FOREST_DEEP))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(theme.PRIMARY))
+        painter.drawRoundedRect(pill, pill.height() / 2, pill.height() / 2)
+        painter.end()
 
 
 class Button(Surface):
@@ -1008,6 +1137,143 @@ class Banner(Surface):
                                   body.width() - 66, body.height() - 16),
                   self._text, theme.font(10), QColor(ink),
                   Qt.TextFlag.TextWordWrap | Qt.AlignmentFlag.AlignVCenter)
+
+
+class SafetyStop(Card):
+    """The hand-over card from the design sheet, panel 7.
+
+    A :class:`Banner` is the right size for "I couldn't find that item"; it is
+    the wrong size for the one moment the whole project is about. When Tiny Me
+    reaches a password, an OTP or a payment it stops for good, and this says so
+    at the scale of a decision: what happened, the five things it will never do,
+    and the single button that gives her the task back when she is ready.
+
+    It collapses to nothing when there is no hand-over, animating ``reveal`` so
+    the panel above it slides rather than jumps.
+    """
+
+    #: What Tiny Me will never do, in her words. The order matches the sheet.
+    NEVER = [
+        ("lock", "Passwords"),
+        ("mail", "OTPs"),
+        ("card", "Payments"),
+        ("trash", "Deleting files"),
+        ("send", "Sending messages"),
+    ]
+
+    #: Breathing room around the card's contents.
+    PAD = 16
+    ROW_HEIGHT = 25
+
+    continued = Signal()
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent, fill=theme.CORAL_BG, border=theme.CORAL_LINE,
+                         radius=theme.RADIUS_LG, clickable=False, lift=0.0,
+                         shadow=0.0)
+        self._body = ""
+        self._reveal = 0.0
+        self._full_height = 0
+        self.setFixedHeight(0)
+
+        self.button = Button("I've done it, continue", kind=Button.PRIMARY,
+                             icon="check", parent=self)
+        self.button.clicked.connect(self.continued.emit)
+        self.button.setToolTip("Only once you have finished this part yourself.")
+        self.button.hide()
+
+    # -- reveal --
+
+    def _get_reveal(self) -> float:
+        return self._reveal
+
+    def _set_reveal(self, value: float) -> None:
+        self._reveal = value
+        self.setFixedHeight(round(self._full_height * value))
+        # The button would otherwise hang out of a half-open card.
+        self.button.setVisible(value > 0.85)
+        self.update()
+
+    reveal = Property(float, _get_reveal, _set_reveal)
+
+    # -- geometry --
+
+    def _body_width(self) -> int:
+        return max(160, self.width() - 2 * self.PAD - 46)
+
+    def _measure(self) -> int:
+        """Total height for the current message, at the current width."""
+        body = text_height(self._body, theme.font(9.8), self._body_width())
+        return round(self.PAD + 34 + 8 + body + 14
+                     + len(self.NEVER) * self.ROW_HEIGHT + 14
+                     + self.button.height() + self.PAD)
+
+    def show_message(self, body: str) -> None:
+        """Open the card. ``body`` is why Tiny Me stopped, in her words."""
+        self._body = body
+        self._full_height = self._measure()
+        animate(self, b"reveal", 1.0, theme.PANEL, theme.EASE_PANEL)
+
+    def dismiss(self) -> None:
+        if self._reveal > 0:
+            animate(self, b"reveal", 0.0, theme.MEDIUM, theme.EASE_IN_OUT)
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 - Qt naming
+        self.button.setFixedWidth(max(180, self.width() - 2 * self.PAD))
+        self.button.move(self.PAD,
+                         self.height() - self.PAD - self.button.height())
+        super().resizeEvent(event)
+
+    # -- painting --
+
+    def paint_content(self, painter: QPainter, rect: QRectF) -> None:
+        if self._reveal <= 0.01:
+            return
+        body = self.paint_panel(painter, rect)
+        painter.setOpacity(min(1.0, self._reveal * 1.3))
+
+        ink = QColor("#A8382E")
+        left = body.left() + self.PAD
+
+        # The disc, filled rather than outlined: this one is not a hint.
+        disc = QRectF(left, body.top() + self.PAD, 34, 34)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(theme.qcolor(theme.CORAL))
+        painter.drawEllipse(disc)
+        icons.paint(painter, "alert", disc.adjusted(7, 7, -7, -7),
+                    theme.qcolor(theme.CREAM), width=2.2)
+
+        draw_text(painter, QRectF(disc.right() + 12, disc.top(),
+                                  body.width() - 2 * self.PAD - 46, 34),
+                  "This part is yours.",
+                  theme.display_font(13, QFont.Weight.DemiBold), ink,
+                  Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+        text_top = disc.bottom() + 8
+        text_h = text_height(self._body, theme.font(9.8), self._body_width())
+        draw_text(painter, QRectF(disc.right() + 12, text_top,
+                                  self._body_width(), text_h),
+                  self._body, theme.font(9.8), theme.qcolor(theme.INK_SOFT),
+                  Qt.TextFlag.TextWordWrap | Qt.AlignmentFlag.AlignTop)
+
+        # The five rows sit on paper so they read as a list of facts rather
+        # than more of the warning.
+        rows_top = text_top + text_h + 14
+        rows = QRectF(left, rows_top, body.width() - 2 * self.PAD,
+                      len(self.NEVER) * self.ROW_HEIGHT + 10)
+        painter.setPen(QPen(theme.qcolor(theme.CORAL_LINE), 1.0))
+        painter.setBrush(theme.qcolor(theme.PAPER, 0.75))
+        painter.drawRoundedRect(rows, theme.RADIUS_MD, theme.RADIUS_MD)
+
+        for index, (icon, label) in enumerate(self.NEVER):
+            y = rows.top() + 5 + index * self.ROW_HEIGHT
+            icons.paint(painter, icon,
+                        QRectF(rows.left() + 12, y + 3, 18, 18),
+                        theme.qcolor(theme.INK_SOFT), width=1.7)
+            draw_text(painter, QRectF(rows.left() + 38, y,
+                                      rows.width() - 50, self.ROW_HEIGHT),
+                      label, theme.font(9.6), theme.qcolor(theme.INK),
+                      Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
 
 class FadeLabel(QWidget):
@@ -1671,6 +1937,24 @@ class CardGrid(QWidget):
         for card in self._cards:
             card.setParent(self)
         self._regrid(max_columns)
+
+    def set_cards(self, cards: Sequence[QWidget]) -> None:
+        """Swap which cards are in the grid, for a filter above it.
+
+        Cards that drop out are hidden rather than destroyed: the caller owns
+        them and their signals, and a filter is expected to bring them back.
+        """
+        wanted = list(cards)
+        for card in self._cards:
+            if card not in wanted:
+                card.hide()
+        self._cards = wanted
+        for card in self._cards:
+            card.setParent(self)
+            card.show()
+        # _regrid is a no-op when the column count is unchanged, so force it.
+        self._columns = 0
+        self._regrid(self._wanted_columns(self.width()))
 
     def _wanted_columns(self, width: int) -> int:
         if width <= 0:

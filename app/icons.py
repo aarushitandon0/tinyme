@@ -341,6 +341,70 @@ def _chevron_down() -> QPainterPath:
     return _path(("m", 7.4, 10), ("l", 12, 14.6), ("l", 16.6, 10))
 
 
+def _keyboard() -> QPainterPath:
+    """Settings > Shortcuts. Three rows of keys, the bottom one a space bar."""
+    p = _rounded(2.6, 6.2, 18.8, 11.6, 2.4)
+    for x in (5.6, 9.0, 12.4, 15.8):
+        p.moveTo(x, 9.6)
+        p.lineTo(x + 0.2, 9.6)
+    for x in (6.6, 10.0, 13.4):
+        p.moveTo(x, 12.4)
+        p.lineTo(x + 0.2, 12.4)
+    p.moveTo(8.2, 15.2)
+    p.lineTo(15.8, 15.2)
+    return p
+
+
+def _palette() -> QPainterPath:
+    """Settings > Appearance. A paint palette with its thumb hole and wells."""
+    p = _path(
+        ("m", 12, 3.4),
+        ("c", 16.9, 3.4, 20.6, 7.0, 20.6, 11.6),
+        ("c", 20.6, 14.4, 18.6, 15.6, 16.6, 15.6),
+        ("l", 14.8, 15.6),
+        ("c", 13.6, 15.6, 13.0, 16.4, 13.0, 17.3),
+        ("c", 13.0, 19.1, 14.4, 19.2, 14.0, 20.2),
+        ("c", 13.7, 20.9, 12.9, 20.6, 12.0, 20.6),
+        ("c", 7.1, 20.6, 3.4, 16.8, 3.4, 12.0),
+        ("c", 3.4, 7.2, 7.1, 3.4, 12.0, 3.4),
+        ("z",),
+    )
+    for cx, cy in ((8.0, 8.4), (12.4, 7.2), (16.0, 10.0), (7.4, 13.0)):
+        p.addEllipse(QPointF(cx, cy), 1.0, 1.0)
+    return p
+
+
+def _trash() -> QPainterPath:
+    """"Deleting files" on the safety list."""
+    p = _path(("m", 4.2, 6.6), ("l", 19.8, 6.6))
+    p.addPath(_path(
+        ("m", 6.4, 6.6), ("l", 7.4, 19.4),
+        ("c", 7.5, 20.2, 8.1, 20.6, 8.8, 20.6),
+        ("l", 15.2, 20.6),
+        ("c", 15.9, 20.6, 16.5, 20.2, 16.6, 19.4),
+        ("l", 17.6, 6.6),
+    ))
+    p.moveTo(9.2, 6.6)
+    p.lineTo(9.6, 4.2)
+    p.lineTo(14.4, 4.2)
+    p.lineTo(14.8, 6.6)
+    p.moveTo(10.4, 10.2)
+    p.lineTo(10.8, 17.0)
+    p.moveTo(13.6, 10.2)
+    p.lineTo(13.2, 17.0)
+    return p
+
+
+def _card() -> QPainterPath:
+    """"Payments" on the safety list: a bank card with its magnetic stripe."""
+    p = _rounded(2.8, 5.4, 18.4, 13.2, 2.6)
+    p.moveTo(2.8, 9.8)
+    p.lineTo(21.2, 9.8)
+    p.moveTo(6.2, 14.4)
+    p.lineTo(10.4, 14.4)
+    return p
+
+
 ICONS: dict[str, Callable[[], QPainterPath]] = {
     "home": _home,
     "clock": _clock,
@@ -375,6 +439,10 @@ ICONS: dict[str, Callable[[], QPainterPath]] = {
     "sparkle": _sparkle,
     "dot": _dot,
     "chevron_down": _chevron_down,
+    "keyboard": _keyboard,
+    "palette": _palette,
+    "trash": _trash,
+    "card": _card,
 }
 
 

@@ -200,3 +200,83 @@ the matcher is covered by `tests/test_overlay.py`.
 `mss` width / Qt logical width = 1.2500, equal to `devicePixelRatio` to four
 decimal places, so `elements.to_logical` is converting correctly. Still needs
 the eyeball check at 100% - see README / the testing steps in the P3 handover.
+
+## Gemma: measured, Fri 3 Oct 2026
+
+Ollama is now installed (`gemma4:e2b` 4.6 GB, `gemma4:e4b` 6.6 GB). These come
+from a probe script, not `bench_gemma.py`, so the prompt is a **real** 80-element
+screen rather than the script's fixed 60-element one. Same machine as every row
+above.
+
+| measurement | value |
+|---|---|
+| cold model load + 1 token, `gemma4:e2b` | **31.8 s** |
+| warm call + 1 token | **0.9 s** |
+| warm `plan_step`, real 80-element screen, quiet-ish machine | **26.5 s** |
+| warm `plan_step`, same, machine loaded by a concurrent OCR benchmark | **50.5 s** |
+
+### The cold-start defect this exposed, and the fix
+
+First `plan_step` of a session on a cold server measured **60.8 s** and came back
+`fell_back=True`: load (31.8 s) plus inference (~26 s) overran
+`config.MODEL_TIMEOUT_S = 60.0`, httpx raised `ReadTimeout`, and `plan_step`
+turned it into the `cannot_see_it` hint it is supposed to. So her **first** step
+of every session was a generic hint instead of a circle, and every step after it
+was fine. That is why it was invisible in the unit tests, which mock the client.
+
+Fixed by `brain.warm_up()`, called from `TinyMe.start` on a daemon thread
+(`main.TinyMe._warm_model`) -- the same move `uia.warm_up` already makes for
+COM, two orders of magnitude bigger, hence the thread: 31.8 s on the GUI thread
+would freeze the prompt window. Re-measured after the fix, cold server, worst
+case with the machine still loaded:
+
+```
+[warm_up ] finished in 22.0s
+[step 1  ] 50.5s  fell_back=False  retried=False
+           instruction: 'Click on the File menu.'
+           target_id=9  check=text_appears='File menu'
+           resolves to: 'File' (ocr:text)
+```
+
+**Residual, not fixed.** If she types a goal within a few seconds of launch, her
+step queues behind the still-running warm-up and pays load + inference anyway.
+Ollama serialises the two, so nothing breaks, but the 60 s ceiling can still be
+hit in that narrow window. Left alone rather than widened: `MODEL_TIMEOUT_S` is
+a product judgement about how long she should stare at a spinner, and changing
+it to paper over a 4-second race is the wrong trade to make silently.
+
+## OCR tuning: attempted, and it does not work
+
+Testing bench.md's own option 4 ("try a smaller detection input size"). Five
+RapidOCR configurations, same 1920x1080 screen, 1 warm-up + 3 timed runs each:
+
+| configuration | min | median | texts |
+|---|---|---|---|
+| defaults | 12.88 s | 14.56 s | 140 |
+| `Global.use_cls=False` | 13.15 s | 38.70 s | 141 |
+| `use_cls=False` + `Det.limit_type=max`, 960 | 30.31 s | 31.45 s | 141 |
+| `use_cls=False` + `Det.limit_type=max`, 736 | 14.15 s | 15.71 s | 141 |
+| the above at 960 + `Rec.rec_batch_num=16` | 18.96 s | 22.91 s | 141 |
+
+**No configuration beats the default**, and the within-configuration spread
+(13 s to 39 s for the *same* settings) is larger than any between-configuration
+difference. So the knobs are not the problem and tuning them further is wasted
+effort. The spread is the finding, and it matches the drift already recorded
+above: this is CPU contention on the recognition pass, not image size.
+
+Two measurements that explain *why* downscaling never helped:
+
+* Full screen, 1920x1080: **15.4 s**, 62 boxes.
+* Taskbar strip, 1920x60, i.e. **3%** of the pixels: **4.8 s**, 10 boxes.
+
+Cost tracks the number of detected text boxes (~0.25-0.5 s each) plus a large
+fixed overhead, not the pixel count. And the default `Det.limit_type: min` with
+`limit_side_len: 736` scales the image so its **short** side becomes 736, which
+for a thin strip is an *upscale*: the 1920x60 taskbar crop is inflated to roughly
+23552x736 before detection runs. That is why the half-scale run recorded earlier
+came out slower, and it means **option 1 (crop to the taskbar rect) is actively
+pathological** under the stock settings, not merely unhelpful.
+
+That leaves option 2 (lean on UIA, OCR as fallback) and option 3 (keep OCR off
+the per-step path except for the two text checks) as the only ones still open.
+Both are architecture changes, not settings, and neither has been made.

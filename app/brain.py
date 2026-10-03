@@ -511,3 +511,43 @@ def plan_step(
         )
 
     raise AssertionError("unreachable: the loop returns on both attempts")
+
+
+def warm_up(client: ChatClient | None = None, model: str | None = None) -> None:
+    """Make Ollama load the model now, rather than inside her first step.
+
+    The same move ``uia.warm_up`` makes for COM, for the same reason and two
+    orders of magnitude more of it. Measured on the dev laptop and recorded in
+    notes/bench.md: loading ``gemma4:e2b`` costs **31.8 s**, where a warm call
+    adds **0.9 s**. A real 80-element step costs ~26 s of inference on top, so
+    the first call of a session came to ~58-61 s against
+    ``config.MODEL_TIMEOUT_S`` of 60 -- and the read timeout that followed was
+    turned into a ``cannot_see_it`` fallback by :func:`plan_step`. The visible
+    symptom was that her *first* step of every session was a generic hint
+    instead of a circle, and every step after it was fine.
+
+    ``num_predict=1`` because the reply is discarded; only the load matters.
+    ``keep_alive`` is what makes the load outlive this call.
+
+    This must not raise. A laptop with Ollama switched off should still start
+    the app and still guide her as far as the fallback hints allow, which is
+    exactly what ``plan_step`` already degrades to.
+
+    Expect this to take ~30 s on a cold server, so call it off the GUI thread.
+    """
+    client = client or _default_client()
+    model = model or config.MODEL
+    started = time.perf_counter()
+    try:
+        client.chat(
+            model=model,
+            messages=[{"role": "user", "content": "hi"}],
+            keep_alive=config.KEEP_ALIVE,
+            options={"num_predict": 1},
+        )
+    except Exception as exc:
+        # Not .exception(): a missing Ollama is an ordinary state on her
+        # laptop, not a bug worth a stack trace at startup.
+        log.info("model warm-up skipped (%s); the first step will pay the load", exc)
+        return
+    log.info("model %s warm in %.0f ms", model, (time.perf_counter() - started) * 1000)

@@ -66,10 +66,12 @@ from app.widgets import (
     ExampleCard,
     FadeLabel,
     FadeStack,
+    FilterTabs,
     FlowLayout,
     NavItem,
     ProgressTrack,
     PromptBar,
+    SafetyStop,
     StatusPill,
     StepRow,
     Surface,
@@ -127,6 +129,15 @@ class WindowButton(Surface):
         self._glyph = glyph
         self._danger = danger
         self.setFixedSize(QSize(42, theme.TITLEBAR_HEIGHT))
+        # Window chrome is mouse-only, on purpose. ``Surface`` gives every
+        # clickable widget StrongFocus *and* turns Space/Enter into a click,
+        # and these three are the first focusable children of the window, so
+        # they collect the initial focus. The result, reproduced live: the
+        # window opened, focus sat on "minimise", and the first Enter she
+        # pressed -- the one meant to send her goal -- minimised Tiny Me
+        # instead. Nobody tabs to a title bar; the keyboard belongs to the
+        # prompt.
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def paint_content(self, painter: QPainter, rect: QRectF) -> None:
         h = self._hover
@@ -673,47 +684,72 @@ class HistoryPage(QWidget):
 
 
 class ExamplesPage(QWidget):
-    """The full list, grouped, for when she wants to browse rather than type."""
+    """The full list, for when she wants to browse rather than type.
+
+    The design sheet puts a filter row above this list rather than headings
+    inside it, and the sheet is right: headings make her scroll past the thing
+    she does not want, and a filter makes it disappear. "All" is always first
+    and always selected on arrival, so the page never opens already narrowed.
+    """
 
     chosen = Signal(str, str)
 
-    GROUPS: list[tuple[str, list[tuple[str, str, str]]]] = [
-        ("Files on your laptop", [
-            ("Find the file I downloaded", "folder", "find"),
-            ("Open my Documents folder", "folder", "guide"),
-            ("Make this text bigger", "doc", "guide"),
-        ]),
-        ("Out on the web", [
-            ("Book a train ticket", "train", "do"),
-            ("Open my college portal", "globe", "guide"),
-            ("Open YouTube", "video", "guide"),
-            ("Check my email", "mail", "guide"),
-        ]),
+    #: ``(what she sees, icon, which button it presses, which filter it is in)``
+    ITEMS: list[tuple[str, str, str, str]] = [
+        ("Find the file I downloaded", "folder", "find", "Files"),
+        ("Open my Documents folder", "folder", "guide", "Files"),
+        ("Book a train ticket", "train", "do", "Websites"),
+        ("Open my college portal", "globe", "guide", "Websites"),
+        ("Open YouTube", "video", "guide", "Websites"),
+        ("Check my email", "mail", "guide", "Apps"),
+        ("Make this text bigger", "doc", "guide", "Apps"),
+        ("Fill a form", "doc", "guide", "Other"),
     ]
+
+    FILTERS = ["All", "Files", "Websites", "Apps", "Other"]
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.cards: list[ExampleCard] = []
+        self._groups: list[str] = []
 
         column = QVBoxLayout(self)
         column.setContentsMargins(theme.GAP_XL, theme.GAP_LG, theme.GAP_XL, theme.GAP_LG)
         column.setSpacing(10)
 
-        for title, items in self.GROUPS:
-            column.addWidget(SectionTitle(title, self))
-            group: list[ExampleCard] = []
-            for text, icon, mode in items:
-                card = ExampleCard(text, icon, self)
-                card.clicked.connect(lambda t=text, m=mode: self.chosen.emit(t, m))
-                group.append(card)
-                self.cards.append(card)
-            column.addWidget(CardGrid(group, min_card=190, max_columns=3,
-                                      parent=self))
-            column.addSpacing(10)
+        column.addWidget(SectionTitle("Try these to see how it works", self))
+
+        self.tabs = FilterTabs(self.FILTERS, self)
+        self.tabs.changed.connect(self._apply_filter)
+        column.addWidget(self.tabs)
+        column.addSpacing(4)
+
+        for text, icon, mode, group in self.ITEMS:
+            card = ExampleCard(text, icon, self)
+            card.clicked.connect(lambda t=text, m=mode: self.chosen.emit(t, m))
+            self.cards.append(card)
+            self._groups.append(group)
+
+        self.grid = CardGrid(self.cards, min_card=190, max_columns=3,
+                             parent=self)
+        column.addWidget(self.grid)
         column.addStretch(1)
 
+    def _visible_cards(self, index: int) -> list[ExampleCard]:
+        if index <= 0:
+            return list(self.cards)
+        wanted = self.FILTERS[index]
+        return [card for card, group in zip(self.cards, self._groups)
+                if group == wanted]
+
+    def _apply_filter(self, index: int) -> None:
+        shown = self._visible_cards(index)
+        self.grid.set_cards(shown)
+        # Replay the entrance so the new set arrives rather than appears.
+        stagger(shown, start_ms=20, step_ms=34)
+
     def play_entrance(self) -> None:
-        stagger(self.cards, start_ms=60, step_ms=38)
+        stagger(self._visible_cards(self.tabs.current), start_ms=60, step_ms=38)
 
 
 class SettingRow(Card):
@@ -791,66 +827,217 @@ class ValueTag(QWidget):
         painter.end()
 
 
+class SubNavItem(Surface):
+    """One row of the Settings sub-nav, on cream rather than forest green."""
+
+    def __init__(self, text: str, icon: str, parent: QWidget | None = None) -> None:
+        super().__init__(parent, lift=0.0)
+        self._text = text
+        self._icon = icon
+        self._selected = 0.0
+        self.setFixedHeight(38)
+
+    def _get_selected(self) -> float:
+        return self._selected
+
+    def _set_selected(self, value: float) -> None:
+        self._selected = value
+        self.update()
+
+    selected = Property(float, _get_selected, _set_selected)
+
+    def paint_content(self, painter: QPainter, rect: QRectF) -> None:
+        s, h = self._selected, self._hover
+        body = rect.adjusted(0.5, 0.5, -0.5, -0.5)
+        wash = max(s, h * 0.45)
+        if wash > 0.01:
+            painter.setPen(QPen(theme.qcolor(theme.SAGE_LINE, s), 1.0))
+            painter.setBrush(theme.qcolor(theme.SAGE_BG, wash))
+            painter.drawRoundedRect(body, theme.RADIUS_SM, theme.RADIUS_SM)
+
+        ink = theme.mix(theme.INK_SOFT, theme.PRIMARY, max(s, h * 0.6))
+        icon_box = QRectF(body.left() + 10, body.center().y() - 9, 18, 18)
+        icons.paint(painter, self._icon, icon_box, ink, width=1.7 + 0.3 * s)
+        weight = QFont.Weight.DemiBold if s > 0.5 else QFont.Weight.Normal
+        draw_text(painter, QRectF(icon_box.right() + 10, body.top(),
+                                  body.width() - 48, body.height()),
+                  self._text, theme.font(9.8, weight), ink,
+                  Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+
 class SettingsPage(QWidget):
     """What Tiny Me is actually set to right now.
 
-    Everything on the left of a row is read out of :mod:`app.config`, so this
-    page cannot drift from the running app. The two switches are the only
-    controls, and they do what they say.
+    The design sheet splits this into General / Privacy / Shortcuts /
+    Appearance down the left, which is what this does: four short pages instead
+    of one long scroll, so every section fits without moving.
+
+    Everything on the right of a row is read out of :mod:`app.config`, so this
+    page cannot drift from the running app. Note what is *not* here: the sheet
+    draws switches for "Start on boot" and dropdowns for theme and window size,
+    and Tiny Me has no such settings. Rather than draw controls wired to
+    nothing, each one reports its real, fixed state. A switch that lies is
+    worse than a label that is honest.
     """
+
+    SECTIONS = [
+        ("General", "gear"),
+        ("Privacy", "lock"),
+        ("Shortcuts", "keyboard"),
+        ("Appearance", "palette"),
+    ]
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        column = QVBoxLayout(self)
-        column.setContentsMargins(theme.GAP_XL, theme.GAP_LG, theme.GAP_XL, theme.GAP_LG)
+        self._items: list[SubNavItem] = []
+        self._current = 0
+
+        row = QHBoxLayout(self)
+        row.setContentsMargins(theme.GAP_XL, theme.GAP_LG, theme.GAP_XL,
+                               theme.GAP_LG)
+        row.setSpacing(theme.GAP_LG)
+
+        nav = QVBoxLayout()
+        nav.setContentsMargins(0, 0, 0, 0)
+        nav.setSpacing(4)
+        for index, (label, icon) in enumerate(self.SECTIONS):
+            item = SubNavItem(label, icon, self)
+            item.setFixedWidth(158)
+            item.clicked.connect(lambda i=index: self.select(i))
+            nav.addWidget(item)
+            self._items.append(item)
+        nav.addStretch(1)
+        row.addLayout(nav)
+
+        self.stack = FadeStack(self)
+        self.stack.addWidget(self._general())
+        self.stack.addWidget(self._privacy())
+        self.stack.addWidget(self._shortcuts())
+        self.stack.addWidget(self._appearance())
+        row.addWidget(self.stack, 1)
+
+        self._items[0]._set_selected(1.0)
+
+    # -- the four sections --
+
+    @staticmethod
+    def _section(title: str) -> tuple[QWidget, QVBoxLayout]:
+        page = QWidget()
+        column = QVBoxLayout(page)
+        column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(10)
+        column.addWidget(SectionTitle(title, page))
+        return page, column
 
-        column.addWidget(SectionTitle("Shortcuts", self))
-        open_row = SettingRow("sparkle", "Open Tiny Me",
-                              "Works from any app, any time.", self)
-        open_row.set_right(ValueTag("Ctrl + Alt + H", open_row))
-        column.addWidget(open_row)
+    def _general(self) -> QWidget:
+        page, column = self._section("General")
 
-        stop_row = SettingRow("alert", "Stop everything",
-                              "Takes the circle down and stops looking.", self)
-        stop_row.set_right(ValueTag("Ctrl + Alt + P", stop_row))
-        column.addWidget(stop_row)
+        boot = SettingRow("sparkle", "Start on boot",
+                          "Opens when you ask for it, not before.", page)
+        boot.set_right(ValueTag("Off", boot))
+        boot.setToolTip("Tiny Me is started from the Start menu. There is no "
+                        "background service.")
+        column.addWidget(boot)
 
-        column.addSpacing(10)
-        column.addWidget(SectionTitle("Privacy", self))
+        offline = SettingRow("wifi_off", "Run offline only",
+                             "Nothing ever leaves this laptop.", page)
+        offline.set_right(ValueTag("Always on", offline))
+        offline.setToolTip("Not a choice: Tiny Me has no cloud path to turn on.")
+        column.addWidget(offline)
 
-        offline_row = SettingRow("wifi_off", "Runs on your laptop",
-                                 "No screenshot or word ever leaves it.", self)
-        offline_row.set_right(ValueTag("Always on", offline_row))
-        column.addWidget(offline_row)
+        model = SettingRow("sparkle", "Model",
+                           "Runs locally through Ollama.", page)
+        model.set_right(ValueTag(config.MODEL, model))
+        column.addWidget(model)
+
+        language = SettingRow("doc", "I explain things in", "", page)
+        language.set_right(ValueTag(config.LANGUAGE, language))
+        column.addWidget(language)
+
+        column.addStretch(1)
+        return page
+
+    def _privacy(self) -> QWidget:
+        page, column = self._section("Privacy")
+
+        screen = SettingRow("shield", "Screenshots stay in memory",
+                            "Nothing Tiny Me sees is written to disk.", page)
+        screen.set_right(ValueTag("Always", screen))
+        column.addWidget(screen)
+
+        stops = SettingRow("lock", "Stops at sensitive fields",
+                           "Passwords, OTPs, payments, deleting, sending.", page)
+        stops.set_right(ValueTag("Always", stops))
+        column.addWidget(stops)
 
         # Shown, not offered. Telemetry is read from TINYME_TELEMETRY at
         # import (CLAUDE.md rule 7), so a switch she could flip here would be
         # a switch wired to nothing -- it reports the real state and is
         # deliberately not clickable.
-        self.telemetry = Toggle(config.TELEMETRY_ENABLED, self)
+        self.telemetry = Toggle(config.TELEMETRY_ENABLED, page)
         self.telemetry.setEnabled(False)
         self.telemetry.setToolTip("Set with the TINYME_TELEMETRY environment "
                                   "variable before Tiny Me starts.")
-        telemetry_row = SettingRow(
+        diagnostics = SettingRow(
             "shield", "Developer diagnostics",
             "Numbers only, never text or pictures. Set by TINYME_TELEMETRY.",
-            self)
-        telemetry_row.set_right(self.telemetry)
-        column.addWidget(telemetry_row)
-
-        column.addSpacing(10)
-        column.addWidget(SectionTitle("The brain", self))
-        model_row = SettingRow("sparkle", "Model",
-                               "Runs locally through Ollama.", self)
-        model_row.set_right(ValueTag(config.MODEL, model_row))
-        column.addWidget(model_row)
-
-        language_row = SettingRow("doc", "I explain things in", "", self)
-        language_row.set_right(ValueTag(config.LANGUAGE, language_row))
-        column.addWidget(language_row)
+            page)
+        diagnostics.set_right(self.telemetry)
+        column.addWidget(diagnostics)
 
         column.addStretch(1)
+        return page
+
+    def _shortcuts(self) -> QWidget:
+        page, column = self._section("Shortcuts")
+
+        open_row = SettingRow("sparkle", "Open Tiny Me",
+                              "Works from any app, any time.", page)
+        open_row.set_right(ValueTag("Ctrl + Alt + H", open_row))
+        column.addWidget(open_row)
+
+        stop_row = SettingRow("alert", "Stop everything",
+                              "Takes the circle down and stops looking.", page)
+        stop_row.set_right(ValueTag("Ctrl + Alt + P", stop_row))
+        column.addWidget(stop_row)
+
+        column.addStretch(1)
+        return page
+
+    def _appearance(self) -> QWidget:
+        page, column = self._section("Appearance")
+
+        palette_row = SettingRow("palette", "Theme",
+                                 "Warm cream and forest green, all day.", page)
+        palette_row.set_right(ValueTag("Forest", palette_row))
+        palette_row.setToolTip("The only theme. Tiny Me does not follow the "
+                               "system light or dark setting.")
+        column.addWidget(palette_row)
+
+        size = SettingRow("maximise", "Window size",
+                          "Opens the same size every time.", page)
+        size.set_right(ValueTag("Default", size))
+        column.addWidget(size)
+
+        highlight = SettingRow("cursor", "The circle on screen",
+                               "Warm orange, thick enough to find.", page)
+        highlight.set_right(ValueTag("Orange", highlight))
+        column.addWidget(highlight)
+
+        column.addStretch(1)
+        return page
+
+    # -- navigation --
+
+    def select(self, index: int) -> None:
+        if not (0 <= index < len(self._items)) or index == self._current:
+            return
+        forward = index > self._current
+        self._current = index
+        for i, item in enumerate(self._items):
+            animate(item, b"selected", 1.0 if i == index else 0.0,
+                    theme.MEDIUM, theme.EASE_OUT, store="_anim_selected")
+        self.stack.go_to(index, forward=forward)
 
 
 class AboutPage(QWidget):
@@ -960,6 +1147,11 @@ class StepPanel(QWidget):
 
         self.note = Banner(self)
 
+        # The hand-over card. Closed (zero height) until the guard stops us,
+        # and the one thing in the drawer allowed to be loud.
+        self.safety_stop = SafetyStop(self)
+        self.safety_stop.continued.connect(self._safety_continued)
+
         buttons = QHBoxLayout()
         buttons.setSpacing(8)
         self.stop_button = Button("Stop", kind=Button.DANGER, parent=self)
@@ -993,6 +1185,7 @@ class StepPanel(QWidget):
         column.addWidget(self.track)
         column.addWidget(scroll, 1)
         column.addWidget(self.note)
+        column.addWidget(self.safety_stop)
         column.addLayout(buttons)
         column.addWidget(self.safety)
 
@@ -1023,6 +1216,26 @@ class StepPanel(QWidget):
             row.deleteLater()
         self._rows = []
         self.note.dismiss()
+        self.hide_safety_stop()
+
+    def show_safety_stop(self, message: str) -> None:
+        """The guard stopped us: hand the task over, at full size.
+
+        The standing "I'll stop for passwords" footnote goes away while this is
+        open. It is the same promise, and repeating it under the card that is
+        keeping it makes the card look like boilerplate.
+        """
+        self.safety.hide()
+        self.safety_stop.show_message(message)
+
+    def hide_safety_stop(self) -> None:
+        self.safety_stop.dismiss()
+        self.safety.show()
+
+    def _safety_continued(self) -> None:
+        """She says she has done the sensitive part herself."""
+        self.hide_safety_stop()
+        self.did_it.emit()
 
     def push_step(self, index: int, title: str, body: str = "") -> None:
         """A new step arrived. Everything before it is, by definition, done."""
@@ -1387,11 +1600,15 @@ class PromptWindow(QWidget):
         self.show()
         self.raise_()
         self.activateWindow()
-        self.home.prompt.focus()
         if first_show:
             self.go_home()
             self.home.play_entrance()
             self._play_window_entrance()
+        # After go_home(), never before: switching the page stack moves focus
+        # to the new page's first focusable child, which threw away a focus
+        # set earlier in this method. She should be able to type the moment
+        # the window is up.
+        self.home.prompt.focus()
 
     def _play_window_entrance(self) -> None:
         """Rise 18 px into place. Short, because she pressed a hotkey to get here."""
@@ -1447,7 +1664,12 @@ class PromptWindow(QWidget):
         """Step ``index`` is now the one she is on."""
         self.panel.push_step(index, title, body)
 
+    def resume_from_handover(self) -> None:
+        """The flow saw her finish the sensitive part: close the hand-over card."""
+        self.panel.hide_safety_stop()
+
     def finish_task(self, message: str, ok: bool = True) -> None:
+        self.panel.hide_safety_stop()
         self.panel.finish(message, ok)
         self.toast("All done" if ok else "That one stopped early",
                    message, Toast.SUCCESS if ok else Toast.WARN)
@@ -1461,11 +1683,11 @@ class PromptWindow(QWidget):
         Deliberately loud: this is the one moment where Tiny Me doing nothing
         is the feature, and she needs to know the screen is hers again.
         """
-        self.panel.say(message, Banner.PRIVACY)
+        self.panel.show_safety_stop(message)
 
     def handover_note(self, message: str) -> None:
         """A field in the browser is hers to fill (MASTERSPEC 3B)."""
-        self.panel.say(message, Banner.PRIVACY)
+        self.panel.show_safety_stop(message)
         self.toast("This part is yours", message, Toast.WARN)
 
     # -- keyboard --
