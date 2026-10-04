@@ -954,3 +954,91 @@ Stated plainly, because the value of the project rests on the numbers being trus
 - Screenshots are held in memory and discarded after each step.
 - Telemetry is off by default and carries numbers and closed-vocabulary enums only.
 - The application functions with networking disabled.
+
+---
+
+## How to install the desktop app
+
+Tiny Me is distributed as source code. There is no installer yet. It runs on Windows 10 (version 2004 or later) or Windows 11, and needs Python 3.11 specifically.
+
+**1. Get the code**
+
+```
+git clone https://github.com/aarushitandon0/tinyme.git
+cd tinyme
+```
+
+Or download the ZIP from the repository page and extract it.
+
+**2. Install Python 3.11**
+
+Download Python 3.11 from python.org and tick "Add python.exe to PATH" during setup. Check it with `py -3.11 --version`.
+
+**3. Install Ollama and the local model**
+
+Install Ollama from ollama.com, then start it. In a terminal:
+
+```
+ollama pull gemma4:e2b
+```
+
+Everything runs locally after this. The application works with networking disabled.
+
+**4. Create the environment and install dependencies**
+
+From the repository folder:
+
+```
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
+playwright install chromium
+```
+
+**5. Check that it works**
+
+```
+pytest -q
+```
+
+Unit tests run without the model. Any failure should be reported with its full output.
+
+---
+
+## How to use it
+
+**Start the app**
+
+```
+.venv\Scripts\activate
+python -m app.main
+```
+
+Nothing appears on screen at first. The app waits in the background.
+
+**Ask for help**
+
+1. Press `Ctrl+Alt+H`. A small prompt window opens.
+2. Type your goal in plain words, for example "book a ticket for tomorrow" or "find my downloaded PDF".
+3. Choose one of two options:
+   - **Show me how** circles the exact control to click and waits until you click it. The instruction text explains what to do.
+   - **Do it for me** performs safe steps while you watch. It stops and hands control back at any password, one-time code, card number, payment, delete or send step.
+4. Press `Ctrl+Alt+P` at any time to stop everything.
+
+Tiny Me never clicks or types into password, OTP, CVV, card or payment fields. When it reaches one, it stops and says so.
+
+**Try the demo**
+
+The demo runs against a local mock booking site in this repository, so no real website is involved. In a second terminal, from the repository root:
+
+```
+python -m http.server 8000
+```
+
+Then open `http://localhost:8000/demo_site/index.html` in Microsoft Edge or Chrome, with page zoom at 100 percent. Start Tiny Me, press `Ctrl+Alt+H`, and type a goal such as "book a ticket". Follow the circles.
+
+**Known limits**
+
+- Windows only, primary monitor only, text input only.
+- A single step can take tens of seconds on the development laptop. See section 16 and section 20.
+- Verified at 125 percent display scaling. At 100 percent it has not been checked by eye.
