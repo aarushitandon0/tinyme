@@ -2,47 +2,75 @@
 
 ## What I Built
 
-Tiny Me is a Windows desktop helper built for one non-technical person. She presses a hotkey and types what she wants in plain words, for example "find my train ticket for tomorrow" or "search for trains." Tiny Me then draws a circle around the exact button or box to click next, and waits until she clicks it. When the next step moves on, it draws the next circle. The goal is that she learns the steps herself, not that the computer quietly does them for her.
+I have a lot of smart friends. They're researchers, designers, writers and artists, and they're very good at what they do.
 
-It also knows when to step back. When the screen asks for a password, a one-time code, a card number or a payment, Tiny Me stops, says "This part is yours. I'll wait," and does nothing until she has finished that part herself. It never types into or clicks those fields.
+Every so often one of them messages me: "Hey, how do I do this on my laptop?" My mom does the same thing. How do I find this file? Where did my download go? Which button do I press? Why is this not working?
 
-Everything runs on her laptop. Reading the screen, finding the controls and the language model are all local. No screen content leaves the machine, and the app works with the network turned off.
+They aren't unintelligent. They're just not computer people. They know what they want to accomplish, but unfamiliar folders, settings, buttons and pop-ups are frustrating, and I'm usually the computer person they call.
 
-**Who it is for.** My friend [[TODO: confirm how you describe your friend, and whether she is happy to be named or described]]. [[TODO: the 9 p.m. phone call, in 3 to 5 concrete sentences, using only what actually happened]]
+So: what if a small version of me could live on their laptop?
+
+That's **Tiny Me**. It's a local desktop helper for non-technical users. You press a hotkey and say what you're trying to do in plain words, like "Find my train ticket for tomorrow" or "Show me how to search for trains." Tiny Me looks at the screen, works out the next control, and draws a circle around exactly where to click. You click it. It checks that the step worked, then circles the next one.
+
+It's like having a tech-savvy friend sitting next to you saying "Yep. Click this." Except that friend lives on your laptop.
+
+**It is designed to teach, not to take over.** The goal is "let AI make your computer understandable," not "let AI use your computer." The user stays in control.
+
+It also knows when to stop. When the screen reaches a password, one-time code, card number or payment, Tiny Me says "This part is yours. I'll wait." It doesn't type, doesn't click, and doesn't try to get around the boundary.
+
+**Who it is for.** My mom, and friends who are brilliant at their jobs but get stuck on their laptops. [[TODO: Add the concrete moment you watched someone get stuck, in 3 to 5 sentences, using only what actually happened. Only if you have it.]]
+
+Everything runs on the user's Windows machine. Reading the screen, finding controls and the language model are all local. No screen content leaves the laptop.
 
 ## Demo
 
-[[TODO: paste the screen recording link here, for example {% embed https://youtu.be/XXXX %}]]
+[[TODO: Upload `SS/07_demo_walkthrough.mp4` (currently untracked in git) and paste the link, e.g. {% embed https://youtu.be/XXXX %}]]
 
-The recording shows the full flow:
+The demo runs against a local booking website included in the repo (`demo_site/`), and shows:
 
-1. Press Ctrl+Alt+H and type a goal.
-2. Tiny Me circles the next control and explains it in one line.
-3. She clicks, and the circle moves to the next control.
-4. On the sign-in page, Tiny Me stops and hands control back.
-5. Ctrl+Alt+P stops everything at any time.
+1. Press `Ctrl+Alt+H` and type a goal.
+2. Tiny Me circles the next control and explains the step in one line.
+3. The user clicks it.
+4. Tiny Me checks whether the step worked.
+5. The circle moves to the next control.
+6. At a sign-in page, Tiny Me stops and hands control back.
+7. `Ctrl+Alt+P` stops it at any time.
 
-![Demo site: finding trains](https://raw.githubusercontent.com/TODO/tiny-me-kit/main/eval/screenshots/demo_site_01.png)
+![TinyMe home screen](https://raw.githubusercontent.com/aarushitandon0/tinyme/main/SS/01_home.png)
 
-*The circle lands on the search box. Captions are one line each, as in the tutorial screenshots.*
+*Press the hotkey, then describe what you're trying to do in plain language.*
 
-![Demo site: sign-in handover](https://raw.githubusercontent.com/TODO/tiny-me-kit/main/eval/screenshots/demo_site_03.png)
+![TinyMe guiding the user step by step](https://raw.githubusercontent.com/aarushitandon0/tinyme/main/SS/02_guiding_steps.png)
 
-*The sign-in page. Tiny Me stops here.*
+*Tiny Me circles the control and waits for the user to click it.*
+
+![TinyMe handing control back at a sensitive step](https://raw.githubusercontent.com/aarushitandon0/tinyme/main/SS/03_safety_stop.png)
+
+*At a sensitive step like sign-in, Tiny Me stops instead of interacting.*
+
+![TinyMe example goals](https://raw.githubusercontent.com/aarushitandon0/tinyme/main/SS/04_examples.png)
+
+*Example goals.*
+
+![TinyMe helping find a file](https://raw.githubusercontent.com/aarushitandon0/tinyme/main/SS/05_find_the_file.png)
+
+*Finding a downloaded file, one circled click at a time.*
+
+All screenshots are in the repo's [SS folder](https://github.com/aarushitandon0/tinyme/tree/main/SS).
 
 ## Code
 
-Repository: [[TODO: GitHub repository URL]]
+{% embed https://github.com/aarushitandon0/tinyme %}
 
-{% embed https://github.com/TODO/tiny-me-kit %}
+**Repository:** [github.com/aarushitandon0/tinyme](https://github.com/aarushitandon0/tinyme)
 
-### How to download and run it
+### How to Run
 
-Tiny Me runs on Windows 10 (version 2004 or later) or Windows 11, with Python 3.11 and Ollama.
+Requires Windows 10 (version 2004 or later) or Windows 11, Python 3.11, and [Ollama](https://ollama.com).
 
-```
-git clone https://github.com/TODO/tiny-me-kit
-cd tiny-me-kit
+```bash
+git clone https://github.com/aarushitandon0/tinyme
+cd tinyme
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
@@ -52,92 +80,94 @@ ollama pull gemma4:e2b
 
 To run the demo, open two terminals in the repository folder.
 
-In the first terminal, serve the demo site:
+Terminal 1:
 
-```
+```bash
 python -m http.server 8000
 ```
 
-In the second terminal, start the app:
+Terminal 2:
 
-```
+```bash
 python -m app.main
 ```
 
-The app starts with no visible window. Press Ctrl+Alt+H to open the prompt, type a goal, and choose "Show me how" or "Do it for me." Press Ctrl+Alt+P at any time to stop. The demo flow targets `http://localhost:8000/demo_site/index.html`.
+TinyMe starts with no visible window.
 
-Optional settings go in a `.env` file at the repository root. Real environment variables override it. The main ones are `TINYME_MODEL` (the Ollama model tag), `TINYME_LANGUAGE`, and `TINYME_TELEMETRY` (off unless set to `1`).
+- `Ctrl+Alt+H` opens the prompt. Type a goal and choose "Show me how" or "Do it for me."
+- `Ctrl+Alt+P` stops TinyMe at any time.
+
+The demo targets `http://localhost:8000/demo_site/index.html`.
+
+Optional settings go in a `.env` file at the repo root: `TINYME_MODEL` (Ollama model tag), `TINYME_LANGUAGE`, and `TINYME_TELEMETRY` (off unless set to `1`).
 
 ## How I Built It
 
-**Open-weight models, all local.** The language model is Gemma 4 (`gemma4:e2b`) served by Ollama on the laptop. Text on screen is read by RapidOCR on the ONNX Runtime CPU provider, and controls are read through Windows UI Automation. Nothing calls a hosted API in the runtime path.
+The core idea: **the language model chooses a control, never a coordinate.**
 
-**The model picks a number, never pixels.** This is the key design decision. The app builds a numbered list of the controls on screen and asks the model for one number. The model never produces coordinates. A language model asked for pixel positions gives plausible numbers that are often wrong. A number from a list the app built can be checked: if it is not in the list, the answer is rejected.
+Tiny Me builds a numbered list of the on-screen controls, and asks the model to pick one number from it. The model answers `17`, not `click(834, 492)`. The app can then check that `17` is a real, interactable control. A model that generates pixel coordinates can produce plausible but wrong ones. A number from a list the app built can be validated.
 
-**Success is checked in code.** After each step, a watcher polls the screen once a second and checks whether the step worked, using a window title or class, a piece of text, or a change in pixels. The model proposes which check to run, but Python runs it. A model asked "did that work?" tends to agree with itself.
+**The model proposes. The app decides.**
 
-**A fine-tuning track.** I also tried to fine-tune a small open model on Tinker to pick the right number. I compared it with the untuned base model on the same 22 demo-site rows. See the results in the next section.
+**Success is checked in code.** After each step, a watcher polls the screen about once per second and checks window titles or classes, visible text, pixel changes, or browser structure. The model can suggest which check to run, but Python runs it. I deliberately don't ask the model "did that work?" A model judging its own action can easily talk itself into success.
+
+**The safety guard runs before the model.** Before every model call and every automated action, the guard checks for sensitive screens. If one is present, nothing is sent to the model and nothing is clicked or typed. In the browser, the guard uses page structure, so a password field counts as a password field whatever its label says. Screenshots stay in memory and are never written to disk.
+
+**Everything runs locally:**
+
+- **Gemma 4 (`gemma4:e2b`)** via **Ollama**, for choosing the control
+- **RapidOCR** on **ONNX Runtime**, for screen text
+- **Windows UI Automation**, for discovering controls
+- **Python** for orchestration, guard, validation and execution
+- **Playwright** for the browser demo
+- **Qwen3.5-4B fine-tuned on Tinker** as a swappable alternative picker (see below)
+
+### The Tinker experiment
+
+I fine-tuned `Qwen/Qwen3.5-4B` with LoRA (rank 16, 3 epochs, 80 training examples, about $0.17) on Tinker. The held-out test was the whole `demo_site` app, which the model never saw in training, with 22 labelled examples.
+
+| System | Correct control | Valid answer format |
+|---|---|---|
+| Untuned Qwen3.5-4B | 0/22 (0%) | 0/22 (0%) |
+| Fine-tuned Qwen3.5-4B | 3/22 (14%) | 22/22 (100%) |
+
+The untuned model's 0/22 is mostly a format failure: its replies didn't parse. Fine-tuning fixed the format but not the choice. In 19 of 22 examples the tuned model still picked the wrong element. For example, asked to "pay for my ticket," it picked a heading when the right answer was "not on this screen."
+
+That's a modest result, and it's a useful failure. It says the next problem is teaching the model when to act, which control to pick, and when no safe action exists, not only following the output format.
 
 ## Why Does Open Innovation Matter?
 
-Tiny Me runs on her laptop with open-weight models. Her screen never leaves the machine, there is no per-use bill, and nobody can change the terms or shut the service down.
+For Tiny Me, local and open models aren't a preference; they're part of the product. If I'm asking my friends and my mom to let software look at their screen, I don't want that to depend on trusting a closed hosted API.
 
-Open weights also meant I could change the brain. I could swap the model, read the code that decides when to hand control back, and test the fine-tuning idea myself. A closed API would have made the privacy promise a matter of trust. Here the promise is in code I can point to: the guard runs before every model call, and the model has no way to type into a password box, because the app never gives it one.
+With open weights:
 
-Open-weight models are also slower on a laptop CPU, and I say so below. That is the trade: a slower answer that stays private, against a faster answer that leaves the machine.
+- the model runs on the laptop, and screen content stays there,
+- sensitive controls are blocked before any model call,
+- the code is inspectable,
+- and I could swap the model, fine-tune it, and measure where it fails.
+
+A closed API would have hidden the 0/22 and the 3/22 behind a single "it works" demo. Open weights let me train a model, test it on an app it hadn't seen, and report that it mostly still fails.
 
 ## My Agent Session
 
-[[TODO: Entire or DevRelay session links, one line each on the decision the session shows, for example {% agent_session ID planning %}]]
+[[TODO: No Entire session exists in this repo yet (no session links, no `.entire` data). Either record and link the session(s), then add one line per link on the decision it shows, or delete this section and the Entire prize entry below.]]
 
-## Numbers, Including the Bad Ones
+## Prize Categories
 
-All numbers below come from files in the repository. Nothing is estimated.
+**Best Use of Gemma**
+Gemma 4 (`gemma4:e2b`) is the default model, run fully locally through Ollama. It reads the numbered list of on-screen controls and picks one. Nothing in the runtime path is a hosted API.
 
-**Speed on a Windows 11 laptop at 125% display scaling** (from `notes/bench.md`):
+**Best Use of Tinker**
+I fine-tuned Qwen3.5-4B on Tinker and tested it on a whole held-out app. Valid answer format went from 0/22 to 22/22, and correct control selection from 0/22 to 3/22. The gain is small, and the write-up documents where it still fails.
 
-| Stage | Measurement |
-|---|---|
-| Screen capture | about 15 to 30 ms |
-| OCR on the full screen (warm) | 9.6 s to 16.7 s across six runs |
-| UI Automation, quiet desktop | 74 ms to 118 ms |
-| Model call, warm, on a real 80-element screen | 26.5 s on a quiet machine, 50.5 s with the machine under load |
+[[TODO: Best Use of Entire: only enter if you have linked sessions in "My Agent Session" above. Otherwise remove this entry.]]
 
-OCR is the bottleneck, not the model. On this laptop it takes most of the time in a step. Downscaling the image did not help, and neither did five OCR configurations I tried. The one change I kept is to lean on UI Automation for most controls, which is about two orders of magnitude cheaper.
+[[TODO: Best Use of Sentry Agent Tracing: only enter once the dashboard and trace screenshots exist in `docs/` and the "what the traces told me" paragraph is written from them. Otherwise remove this entry.]]
 
-**The cold-start bug.** The first step of each session timed out at 60.8 seconds, because loading the model took 31.8 seconds and the call itself took about 26 seconds. The app then showed a generic hint instead of a circle. The unit tests missed this because they mock the model. The fix warms the model up in the background when the app starts. After the fix, the first step finished in 50.5 seconds with the correct circle. One gap remains: if a goal is typed in the first few seconds after launch, the step can still wait behind the warm-up.
+## What's Next?
 
-**Picking the right control on the demo site** (from `eval/results_tinker.md`, 22 rows):
+The next step is to put Tiny Me in front of the people I built it for: friends, family, and my mom. I want to find out where they hesitate, which instructions make sense right away, what confuses them, whether they remember the steps next time, where Tiny Me should step back, and most importantly, **after using Tiny Me, do they need it less?**
 
-| System | Correct element | Valid answer format |
-|---|---|---|
-| Untuned base model (Qwen3.5-4B, on Tinker) | 0 of 22 (0%) | 0 of 22 |
-| Tuned model (same base, fine-tuned on Tinker) | 3 of 22 (14%) | 22 of 22 |
-
-The tuning fixed the answer format but not the choice of control. The tuned model still picked the wrong control in 19 of 22 rows. Three examples from the table: for the goal "pay for my ticket," it picked a heading when the right answer was "not on this screen." This is a failure, and the post should say so.
-
-[[TODO: the Gemma 4 picking-accuracy result on the same 22 rows. `eval/results.md` is not in the repository yet. Run `python eval\run_eval.py --systems all` and paste the correct-element rate for `gemma4:e2b` and `gemma4:e4b` here, with the counts.]]
-
-**Live task completion and recovery.** [[TODO: this is not measured yet. The live log in `eval/live_runs.md` has no rows. Fill in the completion and recovery counts only after the live runs are logged, including the failed attempts.]]
-
-**The first user session.** [[TODO: the session with my friend has not happened yet. When it has, add the three tasks, the time for each, the exact points where she stopped, and her exact words from `notes/user_test.md`, complaints included. Do not paraphrase her.]]
-
-## Safety and Privacy
-
-- Tiny Me captures the screen only when she presses the hotkey.
-- The guard runs before every model call. On a password, one-time code or payment screen, nothing is sent to the model and nothing is clicked or typed.
-- In the browser, the guard reads the page structure rather than guessing from pixels. A password field is recognised as a password field whatever its label says.
-- Screenshots exist only in memory. Nothing in the app writes an image to disk.
-- Telemetry is off unless a developer sets `TINYME_TELEMETRY=1`. Even then, only numbers and fixed categories are sent. Never screen text, goals, file names or window titles.
-
-## Limitations and What's Next
-
-- **It only drives my demo site.** The booking flow runs against a five-page static site that I wrote. Real ticketing sites forbid automation in their terms of use and use CAPTCHAs. This project does not claim it works on any real site.
-- **The circle assumes a standard browser layout at 100% page zoom.** A different layout moves the circle by the height of whatever was added. It is verified only for a default Chromium window on my laptop.
-- **"PIN code" is treated as private.** In India a PIN code is a postal code. So on an address form, Tiny Me hands over a field she could have typed herself. I kept this on purpose, because the alternative risks typing into a UPI PIN box.
-- **Do-it-for-me is limited.** Only three task types can run automatically: find a file, open a folder, and browse and fill. Anything else falls back to guide mode.
-- **Only Windows 10 and 11, one display, primary monitor.** Tested at 125% scaling. 100% scaling is not yet verified.
-- **The tuned model is not better yet.** It fixed the answer format but not the choice of control. The next step is more training data for the choice itself, not more tuning of the format.
-- **Next:** run the first user session, fix the stuck points it reveals, and re-run the evaluation to see which numbers move.
+That's the metric I care about. I don't want to build something that makes people feel they can't use their own computer without it. I want the opposite: a small version of your tech-savvy friend that says "Here. Click this." and, eventually, you don't need to ask.
 
 #devchallenge #weekendchallenge #hf26challenge

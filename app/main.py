@@ -1071,6 +1071,7 @@ def main() -> int:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+    telemetry_mod.init()  # no-op unless TINYME_TELEMETRY=1 and SENTRY_DSN are set
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)  # The hotkey must outlive the window.
 
@@ -1083,6 +1084,7 @@ def main() -> int:
         # Any browser we opened for her closes with the app, not with the
         # task: during a task she is still typing in it (actions.close_browser).
         actions_mod.close_browser()
+        telemetry_mod.flush()
 
 
 if __name__ == "__main__":
